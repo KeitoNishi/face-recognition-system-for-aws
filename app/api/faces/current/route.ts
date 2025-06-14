@@ -1,10 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { query } from "@/lib/db"
 
 export async function GET(req: NextRequest) {
   // セッション確認
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const session = cookieStore.get("user_session")
 
   if (!session || session.value !== "authenticated") {
@@ -12,18 +11,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 最新の顔情報を取得
-    const result = await query("SELECT * FROM users ORDER BY created_at DESC LIMIT 1")
-
-    if (result.rows.length === 0) {
-      return NextResponse.json({ message: "顔写真が登録されていません" }, { status: 404 })
-    }
-
-    const user = result.rows[0]
-
+    // 現在のシステムでは顔登録機能は無効化されているため、
+    // 常にfalseを返す
     return NextResponse.json({
-      faceId: user.face_id,
-      s3Key: user.photo_path,
+      hasRegisteredFace: false,
+      message: "顔登録機能は現在無効化されています"
     })
   } catch (error) {
     console.error("Get current face error:", error)

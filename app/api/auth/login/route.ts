@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 認証成功、Cookieにセッション情報を保存
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.set("user_session", "authenticated", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // HTTP環境でも動作するように設定
       maxAge: 60 * 60 * 24, // 24時間
       path: "/",
     })

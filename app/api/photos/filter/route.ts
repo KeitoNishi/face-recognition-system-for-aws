@@ -14,7 +14,7 @@ const s3Client = new S3Client({
 
 export async function GET(req: NextRequest) {
   // セッション確認
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const session = cookieStore.get("user_session")
 
   if (!session || session.value !== "authenticated") {

@@ -50,7 +50,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">顔認識写真管理システム</CardTitle>
+                      <CardTitle className="text-2xl font-bold text-center">学会フォトギャラリー顔認証</CardTitle>
           <CardDescription className="text-center">共通パスワードを入力してログインしてください</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

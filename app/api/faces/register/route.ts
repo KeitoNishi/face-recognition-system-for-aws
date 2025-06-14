@@ -5,7 +5,7 @@ import { saveUserFace } from "@/lib/db"
 
 export async function POST(req: NextRequest) {
   // セッション確認
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const session = cookieStore.get("user_session")
 
   if (!session || session.value !== "authenticated") {

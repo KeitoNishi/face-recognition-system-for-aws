@@ -34,6 +34,11 @@ export async function getPhotosByVenueId(venueId: number) {
   return result.rows
 }
 
+export async function getPhotoCountByVenueId(venueId: number): Promise<number> {
+  const result = await query("SELECT COUNT(*) as count FROM photos WHERE venue_id = $1", [venueId])
+  return parseInt(result.rows[0].count)
+}
+
 export async function createVenue(name: string) {
   const result = await query("INSERT INTO venues (name, created_at) VALUES ($1, NOW()) RETURNING *", [name])
   return result.rows[0]

@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "顔認識写真管理システム",
+  title: "学会フォトギャラリー顔認証",
   description: "イベントや会場ごとの写真を顔認識で絞り込み・ダウンロードできるシステム",
     generator: 'v0.dev'
 }

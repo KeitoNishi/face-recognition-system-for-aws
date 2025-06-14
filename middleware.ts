@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname
-
+  const path = request.nextUrl.pathname;
+  
   // 管理者ページへのアクセスはセッションを確認
   if (path.startsWith("/admin") && !path.startsWith("/admin/api") && path !== "/admin") {
     const session = request.cookies.get("admin_session")
@@ -26,5 +26,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/venues/:path*"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 }
