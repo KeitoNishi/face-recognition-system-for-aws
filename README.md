@@ -28,3 +28,22 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+
+## AWS Parameter Store（JSON一括）設定例
+
+1. AWSコンソールで下記のようなJSONをSecureStringで `/face-recognition/prod/config` という名前で登録
+
+```
+{
+  "databaseUrl": "postgresql://postgres:パスワード@エンドポイント:5432/face_recognition_db",
+  "awsAccessKey": "AKIA...",
+  "awsSecretKey": "xxxx",
+  "s3Bucket": "face-recognition-system-images-gakkai",
+  "rekognitionCollectionId": "face-recognition-system",
+  "userCommonPassword": "xxxxxx",
+  "adminUsername": "admin",
+  "adminPassword": "xxxxxx"
+}
+```
+
+2. ソースコードは `lib/aws.ts`, `lib/db.ts`, `lib/auth.ts` などで `getConfig()` を通じて値を取得します。

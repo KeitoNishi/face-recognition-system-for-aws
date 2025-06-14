@@ -1,18 +1,29 @@
 import { RekognitionClient, CreateCollectionCommand, ListCollectionsCommand } from "@aws-sdk/client-rekognition"
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm"
 
-// AWS設定
-const region = process.env.AWS_REGION || "ap-northeast-1"
-const rekognitionClient = new RekognitionClient({
-  region,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-})
-
-const collectionId = process.env.REKOGNITION_COLLECTION_ID || "face-recognition-system"
+async function getConfig() {
+  const ssm = new SSMClient({ region: "ap-northeast-1" })
+  const command = new GetParameterCommand({
+    Name: "/face-recognition/prod/config",
+    WithDecryption: true,
+  })
+  const response = await ssm.send(command)
+  if (!response.Parameter?.Value) throw new Error("Config not found")
+  return JSON.parse(response.Parameter.Value)
+}
 
 async function createCollection() {
+  const config = await getConfig()
+  const region = "ap-northeast-1"
+  const rekognitionClient = new RekognitionClient({
+    region,
+    credentials: {
+      accessKeyId: config.awsAccessKey,
+      secretAccessKey: config.awsSecretKey,
+    },
+  })
+  const collectionId = config.rekognitionCollectionId
+
   try {
     // 既存のコレクションを確認
     const listCommand = new ListCollectionsCommand({})

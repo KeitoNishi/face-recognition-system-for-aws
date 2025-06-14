@@ -1,10 +1,9 @@
 import { Suspense } from "react"
 import { getVenueById, getPhotosByVenueId } from "@/lib/db"
 import { getSignedPhotoUrl } from "@/lib/aws"
-import { UserHeader } from "@/components/user-header"
-import { PhotoGrid } from "@/components/photo-grid"
-import { FaceFilterButton } from "@/components/face-filter-button"
+import { VenueClient } from "@/components/venue-client"
 import { notFound } from "next/navigation"
+import type { Photo } from "@/types/models"
 
 export const dynamic = "force-dynamic"
 
@@ -14,18 +13,32 @@ interface VenuePageProps {
   }
 }
 
-async function VenuePhotos({ venueId }: { venueId: number }) {
-  const photos = await getPhotosByVenueId(venueId)
+async function getVenueData(venueId: number) {
+  const [venue, photos] = await Promise.all([
+    getVenueById(venueId),
+    getPhotosByVenueId(venueId)
+  ])
+
+  if (!venue) {
+    return null
+  }
 
   // 署名付きURLを取得
   const photosWithUrls = await Promise.all(
     photos.map(async (photo) => {
       const url = await getSignedPhotoUrl(photo.s3_key)
-      return { ...photo, url }
+      return { 
+        id: photo.id,
+        venue_id: photo.venue_id,
+        filename: photo.filename,
+        s3_key: photo.s3_key,
+        uploaded_at: photo.uploaded_at,
+        url 
+      } as Photo & { url: string }
     }),
   )
 
-  return <PhotoGrid photos={photosWithUrls} />
+  return { venue, photos: photosWithUrls }
 }
 
 export default async function VenuePage({ params }: VenuePageProps) {
@@ -35,22 +48,19 @@ export default async function VenuePage({ params }: VenuePageProps) {
     return notFound()
   }
 
-  const venue = await getVenueById(venueId)
+  const data = await getVenueData(venueId)
 
-  if (!venue) {
+  if (!data) {
     return notFound()
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <UserHeader />
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{venue.name}</h1>
-        <FaceFilterButton venueId={venueId} />
-      </div>
-      <Suspense fallback={<div>写真を読み込み中...</div>}>
-        <VenuePhotos venueId={venueId} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div>読み込み中...</div>}>
+      <VenueClient 
+        venue={data.venue} 
+        venueId={venueId} 
+        initialPhotos={data.photos} 
+      />
+    </Suspense>
   )
 }

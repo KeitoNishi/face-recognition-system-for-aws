@@ -1,85 +1,84 @@
 "use client"
 
-import type React from "react"
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+export default function HomePage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
 
-export default function LoginPage() {
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password }),
-      })
-
-      if (response.ok) {
-        // ログイン成功、会場一覧ページへリダイレクト
-        router.push("/venues")
-      } else {
-        const data = await response.json()
-        setError(data.message || "パスワードが正しくありません")
-      }
-    } catch (err) {
-      setError("ログイン処理中にエラーが発生しました")
-      console.error(err)
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    // ローカルストレージからトークンをチェック
+    const token = localStorage.getItem('authToken');
+    const role = localStorage.getItem('userRole') as 'user' | 'admin' | null;
+    
+    if (token && role) {
+      setIsAuthenticated(true);
+      setUserRole(role);
     }
-  }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole');
+    setIsAuthenticated(false);
+    setUserRole(null);
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">顔認識写真管理システム</CardTitle>
-          <CardDescription className="text-center">共通パスワードを入力してログインしてください</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="password">共通パスワード</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="パスワードを入力"
-              />
+    <div className="container">
+      <header className="header">
+        <h1>顔認識写真管理システム</h1>
+        {isAuthenticated && (
+          <button onClick={handleLogout} className="btn btn-secondary">
+            ログアウト
+          </button>
+        )}
+      </header>
+
+      <main className="main">
+        {!isAuthenticated ? (
+          <div className="login-section">
+            <h2>ログイン</h2>
+            <div className="login-options">
+              <Link href="/login/user" className="btn btn-primary">
+                一般ユーザーログイン
+              </Link>
+              <Link href="/login/admin" className="btn btn-secondary">
+                管理者ログイン
+              </Link>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "ログイン中..." : "ログイン"}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+        ) : (
+          <div className="dashboard">
+            <h2>
+              {userRole === 'admin' ? '管理者ダッシュボード' : 'ユーザーダッシュボード'}
+            </h2>
+            
+            <div className="navigation">
+              <Link href="/venues" className="btn btn-primary">
+                会場一覧
+              </Link>
+              
+              {userRole === 'admin' && (
+                <Link href="/admin" className="btn btn-primary">
+                  管理画面
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="system-info">
+          <h3>システム概要</h3>
+          <ul>
+            <li>イベント・会場ごとの写真管理</li>
+            <li>顔認識による写真絞り込み（実装予定）</li>
+            <li>写真のダウンロード機能</li>
+            <li>管理者による写真アップロード</li>
+          </ul>
+        </div>
+      </main>
     </div>
-  )
+  );
 }

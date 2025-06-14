@@ -6,13 +6,14 @@ import { notFound } from "next/navigation"
 export const dynamic = "force-dynamic"
 
 interface AdminVenuePhotosPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function AdminVenuePhotosPage({ params }: AdminVenuePhotosPageProps) {
-  const venueId = Number.parseInt(params.id)
+  const resolvedParams = await params
+  const venueId = Number.parseInt(resolvedParams.id)
 
   if (isNaN(venueId)) {
     return notFound()

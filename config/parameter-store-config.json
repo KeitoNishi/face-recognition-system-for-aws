@@ -1,0 +1,16 @@
+{
+  "database": {
+    "url": "postgresql://postgres:r00t12345@face-recognition-db.clo82qsmkr3w.ap-northeast-1.rds.amazonaws.com:5432/face_recognition_db"
+  },
+  "auth": {
+    "adminUsername": "admin",
+    "adminPassword": "admin123",
+    "userCommonPassword": "user123"
+  },
+  "aws": {
+    "accessKeyId": "AKIA2JQHV4LBT6TXYSQR",
+    "secretAccessKey": "YOUR_SECRET_KEY_HERE",
+    "s3Bucket": "face-recognition-system-images-gakkai",
+    "rekognitionCollectionId": "face-recognition-system"
+  }
+} 
