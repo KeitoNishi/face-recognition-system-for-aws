@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // S3から指定会場の画像一覧を取得
     const command = new ListObjectsV2Command({
       Bucket: config.s3_bucket,
-      Prefix: `photos/${venueId}/`,
+      Prefix: `venues/${venueId}/`,
       MaxKeys: 1000,
     })
 

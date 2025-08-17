@@ -22,7 +22,6 @@ export default function VenueGallery() {
   const router = useRouter()
 
   // S3から写真一覧を取得
-    // S3から写真一覧を取得
   const fetchPhotos = async () => {
     try {
       const response = await fetch('/api/photos/list', {
@@ -42,21 +41,6 @@ export default function VenueGallery() {
           confidence: 0,
         }))
         setPhotos(convertedPhotos)
-      } else {
-        console.error('写真の取得に失敗しました')
-      }
-    } catch (error) {
-      console.error('エラーが発生しました:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  },
-        body: JSON.stringify({ venueId: 'venue_03' }),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        setPhotos(result.photos)
       } else {
         console.error('写真の取得に失敗しました')
       }
@@ -104,7 +88,7 @@ export default function VenueGallery() {
     setShowAllPhotos(true)
   }
 
-    const handleBack = () => {
+  const handleBack = () => {
     router.push('/')
   }
 
@@ -200,7 +184,7 @@ export default function VenueGallery() {
       <section id="wrapper">
         <h2>第3会場（7F ホールB7（2））</h2>
         
-                <div id="gallery">
+        <div id="gallery">
           {photos.map((photo) => (
             <div key={photo.id}>
               <a href={`#photo_${photo.id}`}>
@@ -236,9 +220,6 @@ export default function VenueGallery() {
                   </button>
                 </p>
               </div>
-            </div>
-          ))}
-        </div>
             </div>
           ))}
         </div>
