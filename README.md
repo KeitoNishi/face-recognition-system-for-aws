@@ -1,30 +1,104 @@
-# 学会フォトギャラリー顔認証
+# 顔認識フォトギャラリー
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+第129回日本眼科学会総会の顔認識機能付きフォトギャラリーです。
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/k-nishi-7875s-projects/v0--2y)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/6JMeOWb84Zw)
+## 技術スタック
 
-## Overview
+- **フロントエンド**: Next.js 15, React 19, TypeScript
+- **AWS サービス**: 
+  - Parameter Store (設定管理)
+  - S3 (画像ストレージ)
+  - Rekognition (顔認識)
+  - EC2 (アプリケーションサーバー)
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## 機能
 
-## Deployment
+- パスワード認証によるギャラリーアクセス
+- 顔認識による写真絞り込み機能
+- レスポンシブデザイン
+- モーダル表示による写真詳細表示
+- 写真ダウンロード機能
 
-Your project is live at:
+## ローカル開発
 
-**[https://vercel.com/k-nishi-7875s-projects/v0--2y](https://vercel.com/k-nishi-7875s-projects/v0--2y)**
+### 前提条件
 
-## Build your app
+- Node.js 18以上
+- AWS CLI設定済み
+- 適切なIAMロール設定
 
-Continue building your app on:
+### セットアップ
 
-**[https://v0.dev/chat/projects/6JMeOWb84Zw](https://v0.dev/chat/projects/6JMeOWb84Zw)**
+1. 依存関係のインストール
+```bash
+npm install
+```
 
-## How It Works
+2. 環境変数の設定
+```bash
+export AWS_REGION=ap-northeast-1
+```
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+3. 開発サーバーの起動
+```bash
+npm run dev
+```
+
+4. ブラウザで http://localhost:3000 にアクセス
+
+### パスワード
+
+- テスト用パスワード: `venue_01`
+
+## 本番環境デプロイ
+
+### EC2での実行
+
+1. プロジェクトをEC2に転送
+2. 依存関係をインストール
+```bash
+npm install
+```
+
+3. ビルド
+```bash
+npm run build
+```
+
+4. アプリケーション起動
+```bash
+npm start
+```
+
+### PM2での管理（推奨）
+
+```bash
+npm install -g pm2
+pm2 start npm --name "face-gallery" -- start
+pm2 save
+pm2 startup
+```
+
+## 設定
+
+### Parameter Store設定
+
+以下のパラメータを設定してください：
+
+- `/face-recognition/collection-id`: RekognitionコレクションID
+- `/face-recognition/bucket-name`: S3バケット名
+
+### S3バケット構造
+
+```
+bucket-name/
+├── gallery/
+│   └── venue_01/
+│       ├── 0001.jpg
+│       ├── 0002.jpg
+│       └── ...
+```
+
+## ライセンス
+
+© 2025- The 129th Annual Meeting of the Japanese Ophthalmological Society.

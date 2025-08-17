@@ -1,0 +1,804 @@
+@charset "utf-8";
+/* 
+html5doctor.com Reset Stylesheet v1.6.1
+Last Updated: 2010-09-17
+Author: Richard Clark - http://richclarkdesign.com 
+*/
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	font-style: normal;
+	background: transparent;
+	box-sizing: border-box;
+}
+h1, h2, h3, h4, h5, h6, th {
+	font-weight: normal;
+}
+body {
+	line-height: 1;
+}
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after, q:before, q:after {
+	content: '';
+	content: none;
+}
+a {
+	margin: 0;
+	padding: 0;
+	font-size: 100%;
+	vertical-align: baseline;
+	background: transparent;
+	box-sizing: border-box;
+}
+/* change colours to suit your needs */
+ins {
+	background-color: #ff9;
+	color: #000;
+	text-decoration: none;
+}
+/* change colours to suit your needs */
+mark {
+	background-color: #ff9;
+	color: #000;
+	font-style: italic;
+	font-weight: bold;
+}
+del {
+	text-decoration: line-through;
+}
+abbr[title], dfn[title] {
+	border-bottom: 1px dotted;
+	cursor: help;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+/* change border colour to suit your needs */
+hr {
+	display: block;
+	height: 1px;
+	border: 0;
+	border-top: 1px solid #cccccc;
+	margin: 1em 0;
+	padding: 0;
+}
+input, select {
+	vertical-align: middle;
+}
+html {
+	overflow-y: scroll;
+}
+img {
+	line-height: 0;
+	vertical-align: bottom;
+	font-size: 0;
+	font-family: "ＭＳ ゴシック", "MS Gothic", "Osaka－等幅", Osaka-mono, monospace;
+	image-rendering: -webkit-optimize-contrast;
+}
+strong {
+	font-weight: 700;
+}
+/***************/
+html {
+	font-size: 62.5%;
+}
+@media screen and (max-width:599px) {
+	html {
+		font-size: 2.5vw;
+	}
+}
+body {
+	color: #040710;
+	font-size: 1.6rem;
+	font-family: "Noto Sans JP", sans-serif;
+	font-weight: 400;
+	line-height: 1.5;
+	background: url("../images/background.jpg");
+	background-size: cover;
+	background-attachment: fixed;
+}
+
+header {
+}
+
+h1 {
+}
+
+h1 img {
+	/*width: 100%;*/
+}
+h2 {
+  margin-bottom: 30px;
+  padding-left: 20px;
+  font-size: 2.8rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  border-left: #AE9145 5px solid;
+}
+main {
+	display: block;
+}
+form p {
+  text-align: center;
+}
+footer {
+	margin-top: 35px;
+	padding: 20px;
+  text-align: center;
+  background: #AE9145;
+}
+footer > p {
+  font-size: 1.2rem;
+  color: #fff;
+}
+@media screen and (max-width:768px) {	
+	body {
+		background: none;
+	}	
+	header {
+	}	
+	h1 {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+	}	
+	h1 img {
+    width: 100%;
+	}	
+  h2 {
+    margin-bottom: 20px;
+    padding-left: 10px;
+    font-size: 2.1rem;
+    border-left: #AE9145 5px solid;
+  }
+	footer {
+		margin-top: 0;
+		padding: 20px 10px;
+	}
+}
+
+/***** ID *****/
+#container {
+	width: 1100px;
+	margin: 0 auto;
+	text-align: left;
+	box-shadow: 1px 1px 20px 7px rgba(0, 0, 0, 0.3);
+  background: #fff;
+}
+#mv {
+  width: 100%;
+  height: 330px;
+  padding: 50px 100px 0 0;
+  display: flex;
+  justify-content: flex-end;
+  background: url("../images/mv.jpg") 0 50% no-repeat;
+}
+#mv > div > div {
+  margin: 40px 0 0 7px;
+  display: flex;
+}
+#mv > div > div > p:nth-child(1) {
+  margin-right: 30px;
+}
+#form_box {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+input[type=password] {
+  padding: 6px;
+  border: #ccc 1px solid;
+}
+input[type=button] {
+  margin-left: 10px;
+  padding: 5px;
+	font-family: "Noto Sans JP", sans-serif;
+  border: #ccc 1px solid;
+}
+#upload {
+  padding: 30px;
+  background: #F8F2E1;
+  display: flex;
+}
+#upload > dl {
+  flex: 1;
+  display: flex;
+}
+#upload > dl > dt {
+  width: 10em;
+  margin-right: 30px;
+  font-weight: 500;
+  border-left: #707070 1px solid;
+  border-right: #707070 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#upload > dl > dd {
+  font-size: 1.5rem;
+  flex: 1;
+}
+#upload > dl > dd > p {
+  margin-top: 5px;
+  font-size: 1.4rem;
+}
+#upload > input {
+  width: 220px;
+  margin-left: 30px;
+  font-size: 1.6rem;
+  font-weight: 700;
+	font-family: "Noto Sans JP", sans-serif;
+  color: #fff;
+  border: #AE9145 2px solid;
+  border-radius: 5px;
+  background: #AE9145;
+  transition: 0.5s;
+  cursor: pointer;
+}
+#upload > input:hover {  
+  color: #AE9145;
+  background: #fff;
+}
+#wrapper {
+  padding: 50px;
+}
+#venue {
+  display: flex;
+  flex-wrap: wrap;
+}
+#venue > div {
+  width: 22%;
+  margin-right: 4%;
+  margin-bottom: 4%;
+  height: 200px;
+	box-shadow: 1px 1px 20px 7px rgba(0, 0, 0, 0.05);
+}
+#venue > div:nth-child(4n) {
+  margin-right: 0;
+}
+#venue > div > a {
+  height: 100%;
+  text-align: center;
+  text-decoration: none;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: #AE9145 5px solid;
+  transition: 0.5s;
+}
+#venue > div > a:hover {  
+  background: #FEFAF1;
+}
+#venue > div > a > p {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+#venue > div > a > p > span {
+  font-size: 1.6rem;
+  font-weight: 500;
+  display: block;
+}
+#gallery {
+  display: flex;
+  flex-wrap: wrap;
+}
+#gallery > div {
+  width: 22%;
+  margin-right: 4%;
+  margin-bottom: 4%;
+}
+#gallery > div:nth-child(4n) {
+  margin-right: 0;
+}
+#gallery > div > a > figure {
+  height: 200px;
+  overflow: hidden;
+}
+#gallery > div img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.5s;
+}
+#gallery > div img:hover {
+  transform: scale(1.1);
+}
+#gallery > div > div {
+  display: none;
+}
+.modaal-content-container img {
+  width: 100%;
+}
+.modaal-content-container p a {
+  width: 30%;
+  margin: 30px auto 0;
+  padding: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  display: block;
+  background: #AE9145;
+  border: #AE9145 2px solid;
+  border-radius: 100px;
+  transition: 0.5s;
+}
+.modaal-content-container p a:hover {
+  color: #AE9145;
+  background: #fff;
+}
+@media screen and (max-width:768px) {
+	#container {
+		width: 100%;
+		margin: 0;
+		background-size: cover;
+	}	
+  #mv {
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    background: url("../images/mv.jpg") 0 50% no-repeat;
+  }
+  #mv > div {
+    width: 100%;
+    padding: 30px 15px;
+    background: rgba(0,0,0,.3);
+  }
+  #mv > div > div {
+    max-width: 500px;
+    margin: 20px auto 0;
+  }
+  #mv > div > div > p {
+    width: 45%;
+  }
+  #mv > div > div > p:nth-child(1) {
+    margin-right: 5%;
+  }
+  #mv > div > div > p > img {
+    width: 100%;
+  }
+  #upload {
+    padding: 20px 15px;
+    display: block;
+  }
+  #upload > dl {
+    font-size: 1.4rem;
+    flex: 1;
+    display: block;
+  }
+  #upload > dl > dt {
+    width: 10em;
+    margin: 0 auto 10px;
+    font-weight: 500;
+  }
+  #upload > dl > dd {
+    margin-bottom: 15px;
+  }
+  #upload > input {
+    width: 60%;
+    margin: 0 auto;
+    font-size: 1.4rem;
+    display: block;
+  }
+	#wrapper {
+    padding: 30px 15px;
+	}	
+  #form_box {
+    margin-top: 20px;
+    font-size: 1.4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #venue > div {
+    width: 48%;
+    margin-right: 4%;
+    margin-bottom: 4%;
+    height: 150px;
+  }
+  #venue > div:nth-child(2n),
+  #venue > div:nth-child(4n) {
+    margin-right: 0;
+  }
+  #venue > div br {
+    display: none;
+  }
+  #venue > div > a {
+    height: 100%;
+    padding: 10px;
+  }
+  #venue > div > a > p {
+    font-size: 1.6rem;
+  }
+  #venue > div > a > p > span {
+    font-size: 1.4rem;
+  }
+  #gallery > div {
+    width: 48%;
+    margin-right: 4%;
+    margin-bottom: 4%;
+  }
+  #gallery > div:nth-child(2n),
+  #gallery > div:nth-child(4n) {
+    margin-right: 0;
+  }
+  #gallery > div > a > figure {
+    height: 150px;
+  } 
+  .modaal-content-container {
+    padding: 15px!important;
+  }
+  .modaal-content-container p a {
+    width: 80%;
+    margin: 15px auto 0;
+    padding: 5px;
+  }
+}
+
+
+.pc {
+	display: block;
+}
+
+.sp {
+	display: none;
+}
+
+@media screen and (max-width:768px) {
+	.pc {
+		display: none;
+	}
+	
+	.sp {
+		display: block;
+	}
+}
+
+/***** margin *****/
+.mt3 {
+	margin-top: 3px;
+}
+.mt5 {
+	margin-top: 5px;
+}
+.mt10 {
+	margin-top: 10px;
+}
+.mt15 {
+	margin-top: 15px;
+}
+.mt20 {
+	margin-top: 20px;
+}
+.mt25 {
+	margin-top: 25px;
+}
+.mt30 {
+	margin-top: 30px;
+}
+.mt35 {
+	margin-top: 35px;
+}
+.mt40 {
+	margin-top: 40px;
+}
+.mb0 {
+	margin-bottom: 0;
+}
+.mb3 {
+	margin-top: 3px;
+}
+.mb5 {
+	margin-bottom: 5px;
+}
+.mb10 {
+	margin-bottom: 10px;
+}
+.mb15 {
+	margin-bottom: 15px;
+}
+.mb20 {
+	margin-bottom: 20px;
+}
+.mb25 {
+	margin-bottom: 25px;
+}
+.mb30 {
+	margin-bottom: 30px;
+}
+.mb35 {
+	margin-bottom: 35px;
+}
+.mb40 {
+	margin-bottom: 40px;
+}
+
+.pb0 {
+	padding-bottom: 0 !important;
+}
+
+/***** リスト *****/
+.disc {
+	margin-left: 20px;
+	list-style-type: disc;
+}
+.deci {
+	margin-left: 25px;
+	list-style-type: decimal;
+}
+.num li {
+	margin-left: 1em;
+	text-indent: -1em;
+}
+.li_mb5 li {
+	margin-bottom: 5px;
+}
+.li_mb5 li:last-child {
+	margin-bottom: 0;
+}
+.li_mb10 li {
+	margin-bottom: 10px;
+}
+.li_mb10 li:last-child {
+	margin-bottom: 0;
+}
+/***** 文字サイズ *****/
+.ft_s {
+	font-size: 1.4rem;
+}
+.ft_l {
+	font-size: 1.8rem;
+}
+.ft_ll {
+	font-size: 2.2rem;
+}
+/***** フォント太さ *****/
+.bold {
+	font-weight: bold;
+}
+.normal {
+	font-weight: normal;
+}
+/***** ※ *****/
+.note {
+	margin-left: 1em;
+	text-indent: -1em;
+}
+.note::before {
+	content: "※";
+}
+.note_dl, .note_dl_s {
+	margin-top: 5px;
+}
+.note_dl dt {
+	width: 2.5em;
+	float: left;
+	clear: left;
+}
+.note_dl dd {
+	margin-bottom: 3px;
+	padding-left: 2.5em;
+}
+.note_dl_s dt {
+	width: 1.5em;
+	float: left;
+	clear: left;
+}
+.note_dl_s dd {
+	margin-bottom: 3px;
+	padding-left: 1.5em;
+}
+/***** 位置 *****/
+.center {
+	text-align: center;
+}
+.right {
+	text-align: right;
+}
+.top {
+	vertical-align: top;
+}
+/***** 色 *****/
+.red {
+	color: #cc0000;
+}
+.blue {
+	color: #0580c4;
+}
+.black {
+	color: #000;
+}
+/***** 取り消し *****/
+.cancel {
+	text-decoration: line-through;
+}
+.cancel > span {
+	color: #000;
+}
+/***** 下線 *****/
+.u_line {
+	text-decoration: underline;
+}
+.marker {
+	margin-right: 5px;
+	padding: 1px 5px;
+	background-color: #ffecec;
+	display: inline-block;
+}
+/***** 上付き *****/
+.sup {
+	font-size: 0.8em;
+	vertical-align: super;
+}
+/***** 矢印 *****/
+.arr {
+	width: 7px;
+	height: 7px;
+	margin-right: 10px;
+	border-top: 1px solid;
+	border-right: 1px solid;
+	-webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	display: inline-block;
+	vertical-align: middle;
+}
+
+/***** アイコン *****/
+.win_icon {
+	margin-right: 2px;
+	padding-right: 18px;
+	background: url(../images/win_icon.svg) 100% 50% no-repeat;
+	background-size: 13px 11px;
+}
+
+.pdf_icon {
+	margin-right: 5px;
+	padding-right: 22px;
+	background: url(../images/pdf_icon.svg) 100% 50% no-repeat;
+	background-size: 15px 15px;
+}
+
+.xls_icon {
+	margin-right: 5px;
+	padding-right: 22px;
+	background: url(../images/xls_icon.svg) 100% 50% no-repeat;
+	background-size: 15px 15px;
+}
+
+.doc_icon {
+	margin-right: 5px;
+	padding-right: 22px;
+	background: url(../images/doc_icon.svg) 100% 50% no-repeat;
+	background-size: 15px 15px;
+}
+
+.ppt_icon {
+	margin-right: 5px;
+	padding-right: 22px;
+	background: url(../images/ppt_icon.svg) 100% 50% no-repeat;
+	background-size: 15px 15px;
+}
+
+@media screen and (max-width:768px) {
+	.pdf_icon {
+		padding-right: 20px;
+		background: url(../images/pdf_icon.svg) 100% 50% no-repeat;
+		background-size: 13px;
+	}
+	
+	.xls_icon {
+		padding-right: 20px;
+		background: url(../images/xls_icon.svg) 100% 50% no-repeat;
+		background-size: 13px;
+	}
+	
+	.doc_icon {
+		padding-right: 20px;
+		background: url(../images/doc_icon.svg) 100% 50% no-repeat;
+		background-size: 13px;
+	}
+	
+	.ppt_icon {
+		padding-right: 20px;
+		background: url(../images/ppt_icon.svg) 100% 50% no-repeat;
+		background-size: 13px;
+	}
+}
+
+/* ページトップ */
+/*********************/
+#pagetop {
+	position: fixed;
+	bottom: -110px;
+	right: 20px;
+	z-index: 999;
+}
+#pagetop a {
+	width: 60px;
+	height: 60px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 50%;
+	background-color: #AE9145;
+	transition: 0.5s;
+  border: #fff 1px solid;
+}
+#pagetop a:hover {
+	opacity: 0.7;
+}
+#pagetop a::before {
+	content: "";
+	border-right: 9px solid transparent;
+  border-bottom: 11px solid #fff;
+  border-left: 9px solid transparent; 
+	display: block;
+	color: #fff;
+}
+@media screen and (max-width:768px) {
+  #pagetop {
+    right: 10px;
+  }
+  #pagetop a {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/***** ボタン *****/
+.btn {
+  margin: 30px auto;
+}
+.btn a {
+  padding: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  display: block;
+  background: #AE9145;
+  border: #AE9145 2px solid;
+  border-radius: 5px;
+  transition: 0.5s;
+}
+.btn a:hover {
+  color: #AE9145;
+  background: #fff;
+}
+.btn_s {
+  width: 30%;
+}
+@media screen and (max-width:768px) {
+  .btn {
+    margin: 10px auto 0;
+  }
+  .btn a {
+    font-weight: 500;
+    padding: 10px;
+  }
+  .btn_s {
+    width: 100%;
+  }
+}
+
+
+/***** カラー *****/
+:root {
+	--base-color: #0b1126;
+	--point-color: #bccb3c;
+	--sub-color: #a1a8af;
+}
