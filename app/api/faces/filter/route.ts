@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { RekognitionClient, SearchFacesByImageCommand } from '@aws-sdk/client-rekognition'
 import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getParameter } from '@/lib/parameter-store'
+import { loadConfigFromParameterStore } from '@/lib/parameter-store'
 
 const rekognition = new RekognitionClient({ region: process.env.AWS_REGION || 'ap-northeast-1' })
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'ap-northeast-1' })
@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     const { venueId } = await request.json()
     
     // Parameter Storeから設定を取得
-    const collectionId = await getParameter('/face-recognition/collection-id')
-    const bucketName = await getParameter('/face-recognition/bucket-name')
+    const config = await loadConfigFromParameterStore()
+    const collectionId = config.rekognition_collection
+    const bucketName = config.s3_bucket
     
     // S3から写真一覧を取得（venues/venue_01/の構造に合わせる）
     const listCommand = new ListObjectsV2Command({
