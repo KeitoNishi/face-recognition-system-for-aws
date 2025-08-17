@@ -7,8 +7,11 @@ interface Photo {
   id: string
   filename: string
   s3Key: string
+  url: string
   matched: boolean
   confidence?: number
+  size?: number
+  lastModified?: Date
 }
 
 export default function VenueGallery() {
@@ -19,13 +22,35 @@ export default function VenueGallery() {
   const router = useRouter()
 
   // S3から写真一覧を取得
+    // S3から写真一覧を取得
   const fetchPhotos = async () => {
     try {
-      const response = await fetch('/api/faces/filter', {
+      const response = await fetch('/api/photos/list', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ venueId: 'venue_07' }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        // 顔認識フィルター用の形式に変換
+        const convertedPhotos = result.photos.map((photo: any) => ({
+          ...photo,
+          matched: false,
+          confidence: 0,
+        }))
+        setPhotos(convertedPhotos)
+      } else {
+        console.error('写真の取得に失敗しました')
+      }
+    } catch (error) {
+      console.error('エラーが発生しました:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  },
         body: JSON.stringify({ venueId: 'venue_07' }),
       })
 
@@ -79,8 +104,40 @@ export default function VenueGallery() {
     setShowAllPhotos(true)
   }
 
-  const handleBack = () => {
+    const handleBack = () => {
     router.push('/')
+  }
+
+  const handleDownload = async (photo: Photo) => {
+    try {
+      const response = await fetch('/api/photos/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          s3Key: photo.s3Key,
+          filename: photo.filename,
+        }),
+      })
+
+      if (response.ok) {
+        // ダウンロードリンクを作成
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = photo.filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        console.error('ダウンロードに失敗しました')
+      }
+    } catch (error) {
+      console.error('ダウンロードエラー:', error)
+    }
   }
 
   if (isLoading) {
@@ -143,13 +200,13 @@ export default function VenueGallery() {
       <section id="wrapper">
         <h2>第7会場（5F ホールD5）</h2>
         
-        <div id="gallery">
+                <div id="gallery">
           {photos.map((photo) => (
             <div key={photo.id}>
               <a href={`#photo_${photo.id}`}>
                 <figure>
                   <img 
-                    src={`https://face-recognition-system-bucket.s3.ap-northeast-1.amazonaws.com/${photo.s3Key}`} 
+                    src={photo.url} 
                     alt=""
                     style={photo.matched ? { border: '3px solid #ff6b6b' } : {}}
                   />
@@ -158,16 +215,30 @@ export default function VenueGallery() {
               <div id={`photo_${photo.id}`} className="">
                 <figure>
                   <img 
-                    src={`https://face-recognition-system-bucket.s3.ap-northeast-1.amazonaws.com/${photo.s3Key}`} 
+                    src={photo.url} 
                     alt=""
                   />
                 </figure>
                 <p>
-                  <a href={`https://face-recognition-system-bucket.s3.ap-northeast-1.amazonaws.com/${photo.s3Key}`} download>
+                  <button 
+                    onClick={() => handleDownload(photo)}
+                    style={{
+                      background: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
                     ダウンロード
-                  </a>
+                  </button>
                 </p>
               </div>
+            </div>
+          ))}
+        </div>
             </div>
           ))}
         </div>
