@@ -57,7 +57,7 @@ export async function loadConfigFromParameterStore(): Promise<Config> {
         rekognition_collection: rawConfig.aws.rekognitionCollectionId,
         app_name: "Face Recognition System",
         login_password: rawConfig.auth.userCommonPassword,
-        login_redirect_url: "/gallery/venue_01"
+        login_redirect_url: "/" // 会場一覧ページに変更
       }
       
       console.log(`Configuration loaded from Parameter Store: ${parameterPath}`)

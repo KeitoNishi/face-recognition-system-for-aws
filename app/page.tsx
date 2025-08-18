@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { checkSession, logout, isProtectedRoute } from '@/lib/session'
 
 interface Venue {
   id: string
@@ -12,6 +13,8 @@ interface Venue {
 
 export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([])
+  const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
 
   // 会場一覧データ
@@ -37,8 +40,87 @@ export default function Home() {
     setVenues(venueList)
   }, [])
 
+  // セッション状態を確認
+  useEffect(() => {
+    const verifySession = async () => {
+      const state = await checkSession()
+      setSessionState(state)
+      
+      // 認証されていない場合はログインページにリダイレクト
+      if (!state.authenticated) {
+        router.push('/login')
+      }
+    }
+
+    verifySession()
+  }, [router])
+
   const handleVenueClick = (venue: Venue) => {
-    router.push(venue.path)
+    if (sessionState.authenticated) {
+      router.push(venue.path)
+    } else {
+      router.push('/login')
+    }
+  }
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      const result = await logout()
+      if (result.success) {
+        router.push('/login')
+      } else {
+        console.error('ログアウトエラー:', result.error)
+      }
+    } catch (error) {
+      console.error('ログアウトエラー:', error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
+  // ローディング中
+  if (sessionState.loading) {
+    return (
+      <div id="container">
+        <section id="mv">
+          <div>
+            <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
+            <div>
+              <p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
+              <p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="wrapper">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ 
+              width: '50px', 
+              height: '50px', 
+              border: '3px solid #f3f3f3', 
+              borderTop: '3px solid #007bff', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 20px'
+            }}></div>
+            <p>認証状態を確認中...</p>
+          </div>
+        </section>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  // 認証されていない場合
+  if (!sessionState.authenticated) {
+    return null // ログインページにリダイレクトされる
   }
 
   return (
@@ -60,7 +142,25 @@ export default function Home() {
           <p className="note">取り込まれた顔写真は、ユーザー情報とは一切紐付けられず、今回の写真照合のみに使用されます。照合完了後は速やかに破棄され、システム上に保存されることはありません。</p>
           </dd>
         </dl>
-        <input className="upload_btn" type="button" value="顔写真を登録する" />
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <input className="upload_btn" type="button" value="顔写真を登録する" />
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: isLoggingOut ? '#6c757d' : '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              transition: 'background-color 0.3s'
+            }}
+          >
+            {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+          </button>
+        </div>
       </section>
       
       <section id="wrapper">
@@ -83,6 +183,13 @@ export default function Home() {
       </footer>
       
       <p id="pagetop"><a href="#"></a></p>
+      
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: '第129回日本眼科学会総会 フォトギャラリー',
@@ -22,9 +23,9 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <script src="/jquery.min.js"></script> 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js"></script> 
-        <script src="/function.js"></script>
+        <Script src="/jquery.min.js" strategy="beforeInteractive" />
+        <Script src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js" strategy="afterInteractive" />
+        <Script src="/function.js" strategy="afterInteractive" />
       </body>
     </html>
   )

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { checkSession, logout } from '@/lib/session'
+import Script from 'next/script'
 
 interface Photo {
   id: string
@@ -19,7 +21,73 @@ export default function VenueGallery() {
   const [isFiltering, setIsFiltering] = useState(false)
   const [showAllPhotos, setShowAllPhotos] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
+
+  // セッション状態を確認
+  useEffect(() => {
+    const verifySession = async () => {
+      const state = await checkSession()
+      setSessionState(state)
+      
+      // 認証されていない場合はログインページにリダイレクト
+      if (!state.authenticated) {
+        router.push('/login')
+        return
+      }
+      
+      // 認証されている場合は写真を取得
+      fetchPhotos()
+    }
+
+    verifySession()
+  }, [router])
+
+  // modaalライブラリの初期化
+  useEffect(() => {
+    const initModaal = () => {
+      console.log('=== MODAAL INITIALIZATION START ===');
+      console.log('Window available:', typeof window !== 'undefined');
+      console.log('jQuery available:', typeof window !== 'undefined' && (window as any).jQuery);
+      console.log('jQuery version:', typeof window !== 'undefined' && (window as any).jQuery ? (window as any).jQuery.fn.jquery : 'N/A');
+      console.log('Modaal available:', typeof window !== 'undefined' && (window as any).jQuery && (window as any).jQuery.fn.modaal);
+      console.log('Gallery elements:', document.querySelectorAll('#gallery > div > a').length);
+      
+      if (typeof window !== 'undefined' && (window as any).jQuery && (window as any).jQuery.fn.modaal) {
+        console.log('Initializing modaal...');
+        try {
+          // 既存のmodaalを破棄
+          (window as any).jQuery("#gallery > div > a").modaal('close');
+          
+          // 新しいmodaalを初期化
+          (window as any).jQuery("#gallery > div > a").modaal({
+            overlay_close: true,
+            before_open: function() {
+              console.log('Modaal opening...');
+              document.documentElement.style.overflowY = 'hidden';
+            },
+            after_close: function() {
+              console.log('Modaal closing...');
+              document.documentElement.style.overflowY = 'scroll';
+            }
+          });
+          console.log('Modaal initialized successfully');
+        } catch (error) {
+          console.error('Error initializing modaal:', error);
+        }
+      } else {
+        console.log('jQuery or modaal not available, retrying in 2 seconds...');
+        // 再試行
+        setTimeout(initModaal, 2000);
+      }
+    };
+
+    // 初回実行を遅延
+    const timer = setTimeout(initModaal, 2000);
+    return () => clearTimeout(timer);
+  }, [photos]);
 
   // S3から写真一覧を取得
   const fetchPhotos = async () => {
@@ -34,12 +102,14 @@ export default function VenueGallery() {
 
       if (response.ok) {
         const result = await response.json()
+        console.log('API response:', result)
         // 顔認識フィルター用の形式に変換
         const convertedPhotos = result.photos.map((photo: any) => ({
           ...photo,
           matched: false,
           confidence: 0,
         }))
+        console.log('Converted photos:', convertedPhotos)
         setPhotos(convertedPhotos)
       } else {
         console.error('写真の取得に失敗しました')
@@ -50,10 +120,6 @@ export default function VenueGallery() {
       setIsLoading(false)
     }
   }
-
-  useEffect(() => {
-    fetchPhotos()
-  }, [])
 
   const handleFaceFilter = async () => {
     setIsFiltering(true)
@@ -92,38 +158,76 @@ export default function VenueGallery() {
     router.push('/')
   }
 
-  const handleDownload = async (photo: Photo) => {
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
     try {
-      const response = await fetch('/api/photos/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          s3Key: photo.s3Key,
-          filename: photo.filename,
-        }),
-      })
-
-      if (response.ok) {
-        // ダウンロードリンクを作成
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = photo.filename
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+      const result = await logout()
+      if (result.success) {
+        router.push('/login')
       } else {
-        console.error('ダウンロードに失敗しました')
+        console.error('ログアウトエラー:', result.error)
       }
     } catch (error) {
-      console.error('ダウンロードエラー:', error)
+      console.error('ログアウトエラー:', error)
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
+  const handleImageLoad = (photoId: string) => {
+    setLoadedImages(prev => new Set(prev).add(photoId))
+  }
+
+  const handleImageError = (photo: Photo) => {
+    console.error('Image load error:', photo.url)
+  }
+
+  console.log('Current state:', { isLoading, photosCount: photos.length, photos })
+  
+  // セッション確認中
+  if (sessionState.loading) {
+    return (
+      <div id="container">
+        <section id="mv">
+          <div>
+            <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
+            <div>
+              <p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
+              <p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="wrapper">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ 
+              width: '50px', 
+              height: '50px', 
+              border: '3px solid #f3f3f3', 
+              borderTop: '3px solid #007bff', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 20px'
+            }}></div>
+            <p>認証状態を確認中...</p>
+          </div>
+        </section>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  // 認証されていない場合
+  if (!sessionState.authenticated) {
+    return null // ログインページにリダイレクトされる
+  }
+  
   if (isLoading) {
     return (
       <div id="container">
@@ -139,30 +243,59 @@ export default function VenueGallery() {
         
         <section id="wrapper">
           <h2>第3会場（7F ホールB7（2））</h2>
-          <p>写真を読み込み中...</p>
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ 
+              width: '50px', 
+              height: '50px', 
+              border: '3px solid #f3f3f3', 
+              borderTop: '3px solid #007bff', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 20px'
+            }}></div>
+            <p>写真を読み込み中... ({photos.length}件)</p>
+          </div>
         </section>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     )
   }
 
   return (
-    <div id="container">
-      <section id="mv">
-        <div>
-          <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
+    <>
+      <Script 
+        src="https://code.jquery.com/jquery-3.6.0.min.js" 
+        strategy="beforeInteractive"
+        onLoad={() => console.log('jQuery loaded in component')}
+      />
+      <Script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js" 
+        strategy="afterInteractive"
+        onLoad={() => console.log('Modaal loaded in component')}
+      />
+      <div id="container">
+        <section id="mv">
           <div>
-            <p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
-            <p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
+            <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
+            <div>
+              <p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
+              <p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       
       <section id="upload">
         <dl>
           <dt>写真の絞り込み</dt>
           <dd>フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真を絞り込んで表示します。</dd>
         </dl>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
           <input 
             className="upload_btn" 
             type="button" 
@@ -178,6 +311,22 @@ export default function VenueGallery() {
               onClick={handleShowAll}
             />
           )}
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: isLoggingOut ? '#6c757d' : '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              transition: 'background-color 0.3s'
+            }}
+          >
+            {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+          </button>
         </div>
       </section>
       
@@ -192,7 +341,15 @@ export default function VenueGallery() {
                   <img 
                     src={photo.url} 
                     alt=""
-                    style={photo.matched ? { border: '3px solid #ff6b6b' } : {}}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover',
+                      border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6'
+                    }}
+                    loading="lazy"
+                    onLoad={() => handleImageLoad(photo.id)}
+                    onError={() => handleImageError(photo)}
                   />
                 </figure>
               </a>
@@ -201,23 +358,24 @@ export default function VenueGallery() {
                   <img 
                     src={photo.url} 
                     alt=""
+                    style={{ maxWidth: '100%', height: 'auto' }}
                   />
                 </figure>
                 <p>
-                  <button 
-                    onClick={() => handleDownload(photo)}
-                    style={{
-                      background: '#007bff',
-                      color: 'white',
-                      border: 'none',
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const link = document.createElement('a');
+                      link.href = photo.url;
+                      link.download = photo.filename;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
                     }}
                   >
                     ダウンロード
-                  </button>
+                  </a>
                 </p>
               </div>
             </div>
@@ -234,6 +392,14 @@ export default function VenueGallery() {
       </footer>
       
       <p id="pagetop"><a href="#"></a></p>
+      
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
+    </>
   )
 } 

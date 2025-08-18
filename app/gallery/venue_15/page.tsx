@@ -97,7 +97,7 @@ export default function VenueGallery() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ venueId: 'venue_02' }),
+        body: JSON.stringify({ venueId: 'venue_15' }),
       })
 
       if (response.ok) {
@@ -130,7 +130,7 @@ export default function VenueGallery() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ venueId: 'venue_02' }),
+        body: JSON.stringify({ venueId: 'venue_15' }),
       })
 
       if (response.ok) {
@@ -242,7 +242,7 @@ export default function VenueGallery() {
         </section>
         
         <section id="wrapper">
-          <h2>第2会場（7F ホールB7（1））</h2>
+          <h2>第15会場（5F ホールB5（11））</h2>
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <div style={{ 
               width: '50px', 
@@ -331,7 +331,7 @@ export default function VenueGallery() {
       </section>
       
       <section id="wrapper">
-        <h2>第2会場（7F ホールB7（1））</h2>
+        <h2>第15会場（5F ホールB5（11））</h2>
         
         <div id="gallery">
           {photos.map((photo) => (
@@ -402,4 +402,4 @@ export default function VenueGallery() {
     </div>
     </>
   )
-} 
+}
