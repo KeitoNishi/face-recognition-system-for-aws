@@ -48,12 +48,25 @@ export async function POST(request: NextRequest) {
 			CacheControl: 'no-store',
 		}))
 
-		return NextResponse.json({
+		// face_info クッキーを設定してフロントで登録済み表示可能にする
+		const faceInfo = {
+			faceId: 'session',
+			registeredAt: new Date().toISOString(),
+			confidence: 0,
+			s3Key: key,
+		}
+		const response = NextResponse.json({
 			success: true,
 			message: '顔写真を登録しました',
 			faceS3Key: key,
 			venueId,
 		})
+		response.cookies.set('face_info', JSON.stringify(faceInfo), {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax',
+		})
+		return response
 	} catch (error) {
 		console.error('face register error:', error)
 		return NextResponse.json({ error: 'failed to register face' }, { status: 500 })
