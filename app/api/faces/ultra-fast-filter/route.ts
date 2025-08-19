@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       if (Date.now() - cached.timestamp < CACHE_DURATION) {
         return NextResponse.json({
           success: true,
-          photos: cached.photos,
+          matchedPhotos: cached.photos,
           totalPhotos: cached.photos.length,
           matchedCount: cached.photos.length,
           fromCache: true,
@@ -76,6 +76,11 @@ export async function POST(request: NextRequest) {
     
     // 3. FaceIDマッピングから直接検索（超高速）
     const faceMapping = loadFaceMapping()
+    
+    // デバッグ情報をログ出力
+    console.log(`Ultra-fast filter debug: venueId=${venueId}, userFaceId=${userFaceId}`)
+    console.log(`Face mapping entries: ${Object.keys(faceMapping).length}`)
+    console.log(`Venue photos: ${Object.keys(faceMapping).filter(key => key.includes(`venues/${venueId}/`)).length}`)
     
     // 指定会場の写真で、ユーザーFaceIDとマッチするものを抽出
     const matchedPhotos = []
@@ -97,6 +102,8 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    console.log(`Matched photos: ${matchedPhotos.length}`)
+    
     const processingTime = Date.now() - startTime
     
     // 4. 結果をキャッシュに保存
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      photos: matchedPhotos,
+      matchedPhotos: matchedPhotos,
       totalPhotos: Object.keys(faceMapping).filter(key => key.includes(`venues/${venueId}/`)).length,
       matchedCount: matchedPhotos.length,
       processingTime: `${processingTime}ms`,

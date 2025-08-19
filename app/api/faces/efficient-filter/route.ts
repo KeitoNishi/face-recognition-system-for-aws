@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
     const matchedPhotos = []
     const startTime = Date.now()
     
-    // 動的バッチサイズ調整
-    const dynamicBatchSize = photos.length > 50 ? 10 : photos.length > 20 ? 8 : 5
+    // 動的バッチサイズ調整（プランアップ対応）
+    const dynamicBatchSize = photos.length > 50 ? 20 : photos.length > 20 ? 15 : 10
     
     for (let i = 0; i < photos.length; i += dynamicBatchSize) {
       const batch = photos.slice(i, i + dynamicBatchSize)
@@ -108,14 +108,14 @@ export async function POST(request: NextRequest) {
             return null
           }
           
-          // 顔検索
+          // 顔検索（精度を下げてマッチしやすくする）
           const searchCommand = new SearchFacesByImageCommand({
             CollectionId: collectionId,
             Image: {
               Bytes: Buffer.from(imageBuffer),
             },
-            MaxFaces: 1,
-            FaceMatchThreshold: 90,
+            MaxFaces: 3,  // 複数の顔を検索
+            FaceMatchThreshold: 70,  // 類似度閾値を下げる
           })
           
           const searchResult = await rekognition.send(searchCommand)
@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
           )
           
           if (matchedFace) {
+            console.log(`マッチ発見: ${photo.Key}, 類似度: ${matchedFace.Similarity}%`)
             return {
               id: photo.Key.split('/').pop()?.split('.')[0] || 'unknown',
               filename: photo.Key.split('/').pop() || 'unknown',
@@ -133,6 +134,11 @@ export async function POST(request: NextRequest) {
               matched: true,
               confidence: matchedFace.Similarity || 0,
               faceId: matchedFace.Face?.FaceId,
+            }
+          } else {
+            // デバッグ: 検出された顔IDをログ出力
+            if (searchResult.FaceMatches && searchResult.FaceMatches.length > 0) {
+              console.log(`検出された顔ID: ${searchResult.FaceMatches.map(f => f.Face?.FaceId).join(', ')}`)
             }
           }
           
@@ -149,9 +155,9 @@ export async function POST(request: NextRequest) {
       const validResults = batchResults.filter(result => result !== null)
       matchedPhotos.push(...validResults)
       
-      // API制限を避けるため最小限の待機
+      // API制限を避けるため最小限の待機（プランアップ対応）
       if (i + dynamicBatchSize < photos.length) {
-        await new Promise(resolve => setTimeout(resolve, 5))
+        await new Promise(resolve => setTimeout(resolve, 2))  // 待機時間短縮
       }
     }
     

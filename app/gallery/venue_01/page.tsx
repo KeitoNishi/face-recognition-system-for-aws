@@ -150,22 +150,65 @@ export default function VenueGallery() {
         
         // マッチした写真のみを表示
         const matchedPhotos = result.matchedPhotos || []
-        setPhotos(matchedPhotos)
-        setShowAllPhotos(false)
-        setFilterProgress(100)
         
-        console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
-        
-        // 成功メッセージを表示
-        if (matchedPhotos.length > 0) {
-          alert(`${matchedPhotos.length}枚の写真が見つかりました！`)
+        // Ultra-Fast Filterでマッチしない場合、Efficient Filterにフォールバック
+        if (matchedPhotos.length === 0) {
+          console.log('Ultra-fast filterでマッチなし。Efficient filterにフォールバック...')
+          setFilterProgress(85)
+          
+          const efficientResponse = await fetch('/api/faces/efficient-filter', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              venueId: 'venue_01',
+              useCache: true,
+              batchSize: 5
+            }),
+          })
+          
+          const efficientResult = await efficientResponse.json()
+          
+          if (efficientResponse.ok) {
+            const efficientMatchedPhotos = efficientResult.photos || []
+            setPhotos(efficientMatchedPhotos)
+            setShowAllPhotos(false)
+            setFilterProgress(100)
+            
+            console.log(`Efficient filter完了: ${efficientMatchedPhotos.length}枚の写真を発見`)
+            
+            if (efficientMatchedPhotos.length > 0) {
+              alert(`${efficientMatchedPhotos.length}枚の写真が見つかりました！（リアルタイム検索）`)
+            } else {
+              alert('該当する写真が見つかりませんでした。')
+            }
+          } else {
+            setPhotos([])
+            setShowAllPhotos(false)
+            setFilterProgress(100)
+            alert('写真の検索に失敗しました。')
+          }
         } else {
-          alert('該当する写真が見つかりませんでした。')
+          setPhotos(matchedPhotos)
+          setShowAllPhotos(false)
+          setFilterProgress(100)
+          
+          console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
+          
+          if (matchedPhotos.length > 0) {
+            alert(`${matchedPhotos.length}枚の写真が見つかりました！（事前インデックス化）`)
+          } else {
+            alert('該当する写真が見つかりませんでした。')
+          }
         }
       } else {
         // エラーメッセージを表示
-        if (result.error?.includes('顔写真が登録されていません')) {
+        if (result.error?.includes('顔写真が登録されていません') || result.code === 'NO_FACE_REGISTERED') {
           alert('顔写真が登録されていません。まず顔写真を登録してください。')
+          // メインページにリダイレクト
+          router.push('/')
+          return
         } else {
           alert(result.error || '顔認識フィルターに失敗しました')
         }

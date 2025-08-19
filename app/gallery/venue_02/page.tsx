@@ -19,6 +19,7 @@ interface Photo {
 export default function VenueGallery() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [isFiltering, setIsFiltering] = useState(false)
+  const [filterProgress, setFilterProgress] = useState(0)
   const [showAllPhotos, setShowAllPhotos] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
@@ -163,8 +164,11 @@ export default function VenueGallery() {
         }
       } else {
         // エラーメッセージを表示
-        if (result.error?.includes('顔写真が登録されていません')) {
+        if (result.error?.includes('顔写真が登録されていません') || result.code === 'NO_FACE_REGISTERED') {
           alert('顔写真が登録されていません。まず顔写真を登録してください。')
+          // メインページにリダイレクト
+          router.push('/')
+          return
         } else {
           alert(result.error || '顔認識フィルターに失敗しました')
         }
