@@ -54,7 +54,7 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
 
     try {
       const formData = new FormData()
-      formData.append('faceImage', selectedFile)
+      formData.append('file', selectedFile)
 
       const response = await fetch('/api/faces/register', {
         method: 'POST',
