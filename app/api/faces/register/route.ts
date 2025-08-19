@@ -57,15 +57,15 @@ export async function POST(request: NextRequest) {
       success: true,
       faceId: faceId,
       faceInfo: faceInfo,
-      message: '顔写真が正常に登録されました'
+      message: '顔写真が正常に登録されました（セッション限定）'
     })
 
-    // セッションクッキーに顔情報を保存
+    // セッションクッキーに顔情報を保存（セッション終了時に自動削除）
     response.cookies.set('face_info', JSON.stringify(faceInfo), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 // 24時間
+      // maxAgeを設定しない = ブラウザセッション終了時に自動削除
     })
 
     return response

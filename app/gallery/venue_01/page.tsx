@@ -127,41 +127,52 @@ export default function VenueGallery() {
     setFilterProgress(0)
     
     try {
-      // 進捗をシミュレート（実際の進捗はAPIから取得できないため）
-      const progressInterval = setInterval(() => {
-        setFilterProgress(prev => {
-          if (prev >= 90) return prev
-          return prev + Math.random() * 10
-        })
-      }, 500)
+      // 進捗表示の開始
+      setFilterProgress(10)
       
-      const response = await fetch('/api/faces/filter', {
+      // Ultra-fast filter APIを使用（最速）
+      const response = await fetch('/api/faces/ultra-fast-filter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ venueId: 'venue_01' }),
+        body: JSON.stringify({ 
+          venueId: 'venue_01'
+        }),
       })
+
+      setFilterProgress(50)
 
       const result = await response.json()
 
       if (response.ok) {
+        setFilterProgress(80)
+        
         // マッチした写真のみを表示
-        const matchedPhotos = result.photos.filter((photo: Photo) => photo.matched)
+        const matchedPhotos = result.matchedPhotos || []
         setPhotos(matchedPhotos)
         setShowAllPhotos(false)
         setFilterProgress(100)
+        
+        console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
+        
+        // 成功メッセージを表示
+        if (matchedPhotos.length > 0) {
+          alert(`${matchedPhotos.length}枚の写真が見つかりました！`)
+        } else {
+          alert('該当する写真が見つかりませんでした。')
+        }
       } else {
         // エラーメッセージを表示
-        if (result.code === 'NO_FACE_REGISTERED') {
+        if (result.error?.includes('顔写真が登録されていません')) {
           alert('顔写真が登録されていません。まず顔写真を登録してください。')
         } else {
           alert(result.error || '顔認識フィルターに失敗しました')
         }
-        console.error('顔認識フィルターに失敗しました:', result.error)
+        console.error('Ultra-fast filterエラー:', result.error)
       }
     } catch (error) {
-      console.error('エラーが発生しました:', error)
+      console.error('ネットワークエラー:', error)
       alert('ネットワークエラーが発生しました。再度お試しください。')
     } finally {
       setIsFiltering(false)
@@ -394,8 +405,8 @@ export default function VenueGallery() {
               <div style={{
                 width: `${filterProgress}%`,
                 height: '20px',
-                backgroundColor: '#007bff',
-                transition: 'width 0.3s ease',
+                backgroundColor: filterProgress < 50 ? '#ffc107' : filterProgress < 100 ? '#17a2b8' : '#28a745',
+                transition: 'width 0.3s ease, background-color 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -412,7 +423,10 @@ export default function VenueGallery() {
               fontSize: '14px', 
               color: '#6c757d' 
             }}>
-              顔認識で写真を検索中...
+              {filterProgress < 30 ? '顔認識システムを起動中...' :
+               filterProgress < 60 ? '写真データベースを検索中...' :
+               filterProgress < 90 ? '結果を整理中...' :
+               '完了！'}
             </div>
           </div>
         )}

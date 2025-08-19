@@ -123,29 +123,59 @@ export default function VenueGallery() {
 
   const handleFaceFilter = async () => {
     setIsFiltering(true)
+    setFilterProgress(0)
     
     try {
-      const response = await fetch('/api/faces/filter', {
+      // 進捗表示の開始
+      setFilterProgress(10)
+      
+      // Ultra-fast filter APIを使用（最速）
+      const response = await fetch('/api/faces/ultra-fast-filter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ venueId: 'venue_06' }),
+        body: JSON.stringify({ 
+          venueId: 'venue_06'
+        }),
       })
 
+      setFilterProgress(50)
+
+      const result = await response.json()
+
       if (response.ok) {
-        const result = await response.json()
+        setFilterProgress(80)
+        
         // マッチした写真のみを表示
-        const matchedPhotos = result.photos.filter((photo: Photo) => photo.matched)
+        const matchedPhotos = result.matchedPhotos || []
         setPhotos(matchedPhotos)
         setShowAllPhotos(false)
+        setFilterProgress(100)
+        
+        console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
+        
+        // 成功メッセージを表示
+        if (matchedPhotos.length > 0) {
+          alert(`${matchedPhotos.length}枚の写真が見つかりました！`)
+        } else {
+          alert('該当する写真が見つかりませんでした。')
+        }
       } else {
-        console.error('顔認識フィルターに失敗しました')
+        // エラーメッセージを表示
+        if (result.error?.includes('顔写真が登録されていません')) {
+          alert('顔写真が登録されていません。まず顔写真を登録してください。')
+        } else {
+          alert(result.error || '顔認識フィルターに失敗しました')
+        }
+        console.error('Ultra-fast filterエラー:', result.error)
       }
     } catch (error) {
-      console.error('エラーが発生しました:', error)
+      console.error('ネットワークエラー:', error)
+      alert('ネットワークエラーが発生しました。再度お試しください。')
     } finally {
       setIsFiltering(false)
+      setFilterProgress(0)
     }
   }
 

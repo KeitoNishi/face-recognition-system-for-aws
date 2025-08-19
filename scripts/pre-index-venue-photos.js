@@ -1,6 +1,7 @@
 const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm')
 const { RekognitionClient, IndexFacesCommand, DetectFacesCommand } = require('@aws-sdk/client-rekognition')
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3')
+const sharp = require('sharp')
 
 // AWS設定
 const region = process.env.AWS_REGION || 'ap-northeast-1'
@@ -14,6 +15,35 @@ const venues = [
   'venue_06', 'venue_07', 'venue_08', 'venue_09', 'venue_10',
   'venue_11', 'venue_12', 'venue_13', 'venue_14', 'venue_15'
 ]
+
+// 画像をリサイズして5MB以下にする
+async function resizeImageIfNeeded(imageBuffer) {
+  try {
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    
+    if (imageBuffer.length <= maxSize) {
+      return imageBuffer
+    }
+    
+    console.log(`画像サイズが大きすぎます (${(imageBuffer.length / 1024 / 1024).toFixed(2)}MB)。リサイズします...`)
+    
+    // sharpでリサイズ
+    const resizedBuffer = await sharp(imageBuffer)
+      .resize(1024, 1024, { 
+        fit: 'inside',
+        withoutEnlargement: true 
+      })
+      .jpeg({ quality: 80 })
+      .toBuffer()
+    
+    console.log(`リサイズ完了: ${(resizedBuffer.length / 1024 / 1024).toFixed(2)}MB`)
+    return resizedBuffer
+    
+  } catch (error) {
+    console.error('画像リサイズエラー:', error)
+    return imageBuffer // エラーの場合は元の画像を返す
+  }
+}
 
 // Parameter Storeから設定を取得
 async function loadConfig() {
@@ -86,10 +116,13 @@ async function preIndexVenue(venueId, config) {
           continue
         }
         
+        // 画像サイズをチェックしてリサイズ
+        const processedBuffer = await resizeImageIfNeeded(Buffer.from(imageBuffer))
+        
         // 顔を検出
         const detectCommand = new DetectFacesCommand({
           Image: {
-            Bytes: Buffer.from(imageBuffer),
+            Bytes: processedBuffer,
           },
           Attributes: ['ALL'],
         })
@@ -105,7 +138,7 @@ async function preIndexVenue(venueId, config) {
         const indexCommand = new IndexFacesCommand({
           CollectionId: config.collectionId,
           Image: {
-            Bytes: Buffer.from(imageBuffer),
+            Bytes: processedBuffer,
           },
           DetectionAttributes: ['ALL'],
           ExternalImageId: photo.Key.replace(/[^a-zA-Z0-9_.\-:]/g, '_'), // 写真のパスを外部IDとして保存（特殊文字を置換）

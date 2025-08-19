@@ -11,7 +11,7 @@ export async function GET() {
       redirectUrl: config.login_redirect_url
     }
     
-    console.log('Login config loaded from Parameter Store:', loginConfig)
+    // 設定読み込み完了
     return NextResponse.json(loginConfig)
     
   } catch (error) {

@@ -15,6 +15,14 @@ export async function POST() {
       maxAge: 0 // 即座に削除
     })
     
+    // 顔情報クッキーも削除（プライバシー保護）
+    response.cookies.set('face_info', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0 // 即座に削除
+    })
+    
     return response
     
   } catch (error) {
