@@ -3,6 +3,7 @@ import { RekognitionClient, SearchFacesByImageCommand } from '@aws-sdk/client-re
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { bucketName, resolveVenueCollection } from '@/lib/aws'
+import { cookies } from 'next/headers'
 
 const region = process.env.AWS_REGION!
 const rekog = new RekognitionClient({ region })
@@ -49,11 +50,35 @@ export async function POST(req: NextRequest) {
     }
 
     if (!venueId) return NextResponse.json({ error: 'venueId is required' }, { status: 400 })
+
+    // 追加: セッションに保存されている顔画像をS3から自動取得
+    if (!bytes) {
+      const c = await cookies()
+      const sid = c.get('session_id')?.value
+      if (sid) {
+        const candidates = [
+          `session_faces/${sid}/face.jpg`,
+          `session_faces/${sid}/face.jpeg`,
+          `session_faces/${sid}/face.png`,
+        ]
+        for (const key of candidates) {
+          try {
+            const obj = await s3.send(new GetObjectCommand({ Bucket: bucketName, Key: key }))
+            const arr = await obj.Body?.transformToByteArray()
+            if (arr && arr.length > 0) {
+              bytes = Buffer.from(arr)
+              break
+            }
+          } catch {}
+        }
+      }
+    }
+
     if (!bytes)   return NextResponse.json({ error: 'NO_FACE_REGISTERED', code: 'NO_FACE_REGISTERED' }, { status: 400 })
 
     const collection = resolveVenueCollection(venueId)
     const tries = [
-      { th: 90, top: 20 },  // ultra-fast 相当の厳しめ
+      { th: 90, top: 20 },
       { th: 85, top: 50 },
       { th: 80, top: 100 }
     ]

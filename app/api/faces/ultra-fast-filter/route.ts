@@ -46,13 +46,17 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // ユーザーが顔を登録していない場合
+    // ユーザーが顔を登録していない場合は、200で空配列を返しフロント側フォールバックを許可
     if (!userFaceId) {
       return NextResponse.json({
-        success: false,
-        error: '顔写真が登録されていません。まず顔写真を登録してください。',
-        code: 'NO_FACE_REGISTERED'
-      }, { status: 400 })
+        success: true,
+        matchedPhotos: [],
+        totalPhotos: 0,
+        matchedCount: 0,
+        fromCache: false,
+        userFaceId: null,
+        method: 'ultra-fast'
+      }, { status: 200 })
     }
     
     // 2. キャッシュチェック
