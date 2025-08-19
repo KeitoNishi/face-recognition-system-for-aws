@@ -465,7 +465,7 @@ export default function VenueGallery() {
 				<div id="gallery">
 					{photos.map((photo) => (
 						<div key={photo.id}>
-							<a href={`#photo_${photo.id}`}>
+							<a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`}>
 								<figure>
 									<div style={{ position: 'relative', width: '100%', height: '200px' }}>
 										{!loadedImages.has(photo.id) && (
@@ -505,7 +505,7 @@ export default function VenueGallery() {
 								</div>
 								</figure>
 							</a>
-							<div id={`photo_${photo.id}`} className="">
+							<div id={`${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} className="">
 								<figure>
 									<img 
 										src={photo.url} 
