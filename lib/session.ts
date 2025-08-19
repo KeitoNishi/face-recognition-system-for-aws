@@ -1,9 +1,16 @@
 // セッション管理用のユーティリティ関数
 
+export interface FaceInfo {
+  faceId: string
+  registeredAt: string
+  confidence: number
+}
+
 export interface SessionState {
   authenticated: boolean
   loading: boolean
   error?: string
+  faceInfo?: FaceInfo
 }
 
 // セッション状態を確認
@@ -14,7 +21,8 @@ export async function checkSession(): Promise<SessionState> {
       const result = await response.json()
       return {
         authenticated: result.authenticated,
-        loading: false
+        loading: false,
+        faceInfo: result.faceInfo
       }
     } else {
       return {
@@ -50,6 +58,38 @@ export async function logout(): Promise<{ success: boolean; error?: string }> {
     }
   } catch (error) {
     return { success: false, error: 'ログアウトに失敗しました' }
+  }
+}
+
+// 顔情報をセッションに保存
+export async function saveFaceInfo(faceInfo: FaceInfo): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/auth/save-face-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(faceInfo),
+    })
+
+    if (response.ok) {
+      return { success: true }
+    } else {
+      const result = await response.json()
+      return { success: false, error: result.error }
+    }
+  } catch (error) {
+    return { success: false, error: '顔情報の保存に失敗しました' }
+  }
+}
+
+// 顔情報をセッションから取得
+export async function getFaceInfo(): Promise<FaceInfo | null> {
+  try {
+    const sessionState = await checkSession()
+    return sessionState.faceInfo || null
+  } catch (error) {
+    return null
   }
 }
 

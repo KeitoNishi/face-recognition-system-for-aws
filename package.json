@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "create-collection": "node scripts/create-rekognition-collection.js",
+    "pre-index": "node scripts/pre-index-venue-photos.js"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "latest",

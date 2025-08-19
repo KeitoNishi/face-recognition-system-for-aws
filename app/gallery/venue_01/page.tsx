@@ -24,6 +24,7 @@ export default function VenueGallery() {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [filterProgress, setFilterProgress] = useState(0)
   const router = useRouter()
 
   // セッション状態を確認
@@ -123,8 +124,17 @@ export default function VenueGallery() {
 
   const handleFaceFilter = async () => {
     setIsFiltering(true)
+    setFilterProgress(0)
     
     try {
+      // 進捗をシミュレート（実際の進捗はAPIから取得できないため）
+      const progressInterval = setInterval(() => {
+        setFilterProgress(prev => {
+          if (prev >= 90) return prev
+          return prev + Math.random() * 10
+        })
+      }, 500)
+      
       const response = await fetch('/api/faces/filter', {
         method: 'POST',
         headers: {
@@ -133,19 +143,29 @@ export default function VenueGallery() {
         body: JSON.stringify({ venueId: 'venue_01' }),
       })
 
+      const result = await response.json()
+
       if (response.ok) {
-        const result = await response.json()
         // マッチした写真のみを表示
         const matchedPhotos = result.photos.filter((photo: Photo) => photo.matched)
         setPhotos(matchedPhotos)
         setShowAllPhotos(false)
+        setFilterProgress(100)
       } else {
-        console.error('顔認識フィルターに失敗しました')
+        // エラーメッセージを表示
+        if (result.code === 'NO_FACE_REGISTERED') {
+          alert('顔写真が登録されていません。まず顔写真を登録してください。')
+        } else {
+          alert(result.error || '顔認識フィルターに失敗しました')
+        }
+        console.error('顔認識フィルターに失敗しました:', result.error)
       }
     } catch (error) {
       console.error('エラーが発生しました:', error)
+      alert('ネットワークエラーが発生しました。再度お試しください。')
     } finally {
       setIsFiltering(false)
+      setFilterProgress(0)
     }
   }
 
@@ -361,6 +381,41 @@ export default function VenueGallery() {
             {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
           </button>
         </div>
+        
+        {/* 進捗バー */}
+        {isFiltering && (
+          <div style={{ marginTop: '20px' }}>
+            <div style={{ 
+              width: '100%', 
+              backgroundColor: '#e9ecef', 
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${filterProgress}%`,
+                height: '20px',
+                backgroundColor: '#007bff',
+                transition: 'width 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}>
+                {Math.round(filterProgress)}%
+              </div>
+            </div>
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '5px', 
+              fontSize: '14px', 
+              color: '#6c757d' 
+            }}>
+              顔認識で写真を検索中...
+            </div>
+          </div>
+        )}
       </section>
       
       <section id="wrapper">
