@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, logout } from '@/lib/session'
 import Script from 'next/script'
+import MVSection from '@/app/components/MVSection'
 
 interface Photo {
 	id: string
@@ -312,15 +313,10 @@ export default function VenueGallery() {
 	if (sessionState.loading) {
 		return (
 			<div id="container">
-				<section id="mv">
-					<div>
-						<h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
-						<div>
-							<p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
-							<p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
-						</div>
-					</div>
-				</section>
+				<MVSection 
+					onLogout={handleLogout} 
+					isLoggingOut={isLoggingOut} 
+				/>
 				
 				<section id="wrapper">
 					<div style={{ textAlign: 'center', padding: '40px' }}>
@@ -355,15 +351,10 @@ export default function VenueGallery() {
 	if (isLoading) {
 		return (
 			<div id="container">
-				<section id="mv">
-					<div>
-						<h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
-						<div>
-							<p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
-							<p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
-						</div>
-					</div>
-				</section>
+				<MVSection 
+					onLogout={handleLogout} 
+					isLoggingOut={isLoggingOut} 
+				/>
 				
 				<section id="wrapper">
 					<h2>第1会場（4F ホールC）</h2>
@@ -404,15 +395,10 @@ export default function VenueGallery() {
 				onReady={() => console.log('Modaal loaded in component')}
 			/>
 			<div id="container">
-				<section id="mv">
-					<div>
-						<h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
-						<div>
-							<p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
-							<p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
-						</div>
-					</div>
-				</section>
+				<MVSection 
+					onLogout={handleLogout} 
+					isLoggingOut={isLoggingOut} 
+				/>
 			
 			<section id="upload">
 				<dl>
@@ -435,22 +421,6 @@ export default function VenueGallery() {
 							onClick={handleShowAll}
 						/>
 					)}
-					<button
-						onClick={handleLogout}
-						disabled={isLoggingOut}
-						style={{
-							padding: '8px 16px',
-							backgroundColor: isLoggingOut ? '#6c757d' : '#dc3545',
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: isLoggingOut ? 'not-allowed' : 'pointer',
-							fontSize: '14px',
-							transition: 'background-color 0.3s'
-						}}
-					>
-						{isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
-					</button>
 				</div>
 				
 				{/* 進捗バー */}
