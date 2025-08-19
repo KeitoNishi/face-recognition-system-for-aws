@@ -580,7 +580,7 @@ export default function VenueGallery() {
 											document.body.removeChild(link);
 										}}
 									>
-										ダウンロード
+																											表示
 									</a>
 								</p>
 							</div>
