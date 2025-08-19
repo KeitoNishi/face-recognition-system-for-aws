@@ -497,8 +497,8 @@ export default function VenueGallery() {
 				
 										<div id="gallery">
 							{photos.map((photo, index) => (
-						<div key={photo.id}>
-							<a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} onClick={() => prepareModal(("photo_" + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_'), photo.url)}>
+						<div key={`${photo.s3Key}-${index}`}>
+																	<a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`}>
 								<figure>
 									<div style={{ position: 'relative', width: '100%', height: '200px' }}>
 										{!loadedImages.has(photo.id) && (
@@ -555,17 +555,23 @@ export default function VenueGallery() {
 							</a>
 							<div id={`${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} className="">
 								<figure>
-									<img 
-										data-full={photo.url}
-										alt=""
-										style={{ maxWidth: '100%', height: 'auto' }}
-									/>
+									{(() => {
+										const base = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
+										return (
+											<img 
+												src={`${base}&w=1280`}
+												alt=""
+												style={{ maxWidth: '100%', height: 'auto' }}
+											/>
+										)
+									})()}
 								</figure>
 								<p>
 									<a 
 										href="#" 
-										onClick={(e) => {
+										onClick={async (e) => {
 											e.preventDefault();
+											// 押下時にだけ原本URLを取得してダウンロード
 											const link = document.createElement('a');
 											link.href = photo.url;
 											link.download = photo.filename;

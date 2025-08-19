@@ -103,8 +103,14 @@ export async function POST(req: NextRequest) {
           const items = matches
             .filter(m => m.Face?.ExternalImageId)
             .map(m => buildPhoto(m.Face!.ExternalImageId!, m.Similarity ?? 0))
+          // 同一画像（ExternalImageId）の重複を排除
+          const uniqueMap = new Map<string, ReturnType<typeof buildPhoto>>()
+          for (const p of items) {
+            if (!uniqueMap.has(p.s3Key)) uniqueMap.set(p.s3Key, p)
+          }
+          const uniqueItems = Array.from(uniqueMap.values())
 
-          const withUrls = await Promise.all(items.map(async p => {
+          const withUrls = await Promise.all(uniqueItems.map(async p => {
             const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucketName, Key: p.s3Key }), { expiresIn: 600 })
             const thumbUrl = `/api/photos/thumb?s3Key=${encodeURIComponent(p.s3Key)}&w=480`
             return { ...p, url, thumbUrl }
