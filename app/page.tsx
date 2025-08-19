@@ -152,29 +152,12 @@ export default function Home() {
         </dl>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {faceInfo ? (
-            <>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '10px',
-                padding: '8px 12px',
-                backgroundColor: '#d4edda',
-                color: '#155724',
-                borderRadius: '4px',
-                border: '1px solid #c3e6cb'
-              }}>
-                <span>✅ 顔写真登録済み</span>
-                <span style={{ fontSize: '12px' }}>
-                  (登録日: {new Date(faceInfo.registeredAt).toLocaleDateString()})
-                </span>
-              </div>
-              <input 
-                className="upload_btn" 
-                type="button" 
-                value="顔写真を再登録する" 
-                onClick={() => setIsFaceUploadModalOpen(true)}
-              />
-            </>
+            <input 
+              className="upload_btn" 
+              type="button" 
+              value="顔写真を再登録する" 
+              onClick={() => setIsFaceUploadModalOpen(true)}
+            />
           ) : (
             <input 
               className="upload_btn" 
