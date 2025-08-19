@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { photos },
-      { headers: { 'Cache-Control': 'public, max-age=120' } }
+      { headers: { 'Cache-Control': 'public, max-age=300' } }
     )
   } catch (error) {
     console.error('S3画像一覧取得エラー:', error)

@@ -483,25 +483,36 @@ export default function VenueGallery() {
 												zIndex: 1
 											}}></div>
 										)}
-										<img 
-											src={photo.thumbUrl ?? `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=480`}
-											alt=""
-											width={400}
-											height={200}
-											loading="lazy"
-											decoding="async"
-											fetchPriority="low"
-											style={{
-												width: '100%',
-												height: '200px',
-												objectFit: 'cover',
-												border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
-												opacity: loadedImages.has(photo.id) ? 1 : 0.3,
-												transition: 'opacity 0.3s ease-in-out'
-											}}
-											onLoad={() => handleImageLoad(photo.id)}
-											onError={() => handleImageError(photo)}
-										/>
+										{(() => {
+											const base = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
+											const src320 = `${base}&w=320`
+											const src480 = `${base}&w=480`
+											const src640 = `${base}&w=640`
+											return (
+												<img 
+													src={src480}
+													srcSet={`${src320} 320w, ${src480} 480w, ${src640} 640w`}
+													sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, 640px"
+													alt=""
+													width={400}
+													height={200}
+													loading="lazy"
+													decoding="async"
+													fetchPriority="low"
+													style={{
+														width: '100%',
+														height: '200px',
+														objectFit: 'cover',
+														border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
+														opacity: loadedImages.has(photo.id) ? 1 : 0.3,
+														transition: 'opacity 0.3s ease-in-out'
+													}}
+													onLoad={() => handleImageLoad(photo.id)}
+													onError={() => handleImageError(photo)}
+												/>
+											)
+										})()}
+
 								</div>
 								</figure>
 							</a>
