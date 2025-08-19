@@ -1,5 +1,5 @@
 const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm')
-const { RekognitionClient, IndexFacesCommand, DetectFacesCommand } = require('@aws-sdk/client-rekognition')
+const { RekognitionClient, CreateCollectionCommand, IndexFacesCommand, DetectFacesCommand } = require('@aws-sdk/client-rekognition')
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3')
 const sharp = require('sharp')
 
@@ -15,6 +15,29 @@ const venues = [
   'venue_06', 'venue_07', 'venue_08', 'venue_09', 'venue_10',
   'venue_11', 'venue_12', 'venue_13', 'venue_14', 'venue_15'
 ]
+
+// 会場別コレクションIDを解決
+const resolveVenueCollection = (venueId) => {
+  const prefix = process.env.REKOG_COLLECTION_PREFIX || 'face-recognition'
+  return `${prefix}-${venueId}`  // 例: face-recognition-venue_01
+}
+
+// S3から全キーを取得（ページネーション対応）
+async function listAllKeys(Bucket, Prefix) {
+  const keys = []
+  let token
+  do {
+    const out = await s3Client.send(new ListObjectsV2Command({ 
+      Bucket, 
+      Prefix, 
+      MaxKeys: 1000, 
+      ContinuationToken: token 
+    }))
+    keys.push(...(out.Contents?.map(o => o.Key).filter(Boolean) ?? []))
+    token = out.IsTruncated ? out.NextContinuationToken : undefined
+  } while (token)
+  return keys
+}
 
 // 画像をリサイズして5MB以下にする
 async function resizeImageIfNeeded(imageBuffer) {
@@ -60,7 +83,6 @@ async function loadConfig() {
     const config = JSON.parse(response.Parameter?.Value || '{}')
     
     return {
-      collectionId: config.aws?.rekognitionCollectionId,
       bucketName: config.aws?.s3Bucket
     }
   } catch (error) {
@@ -74,16 +96,25 @@ async function preIndexVenue(venueId, config) {
   console.log(`\n=== ${venueId} の処理を開始 ===`)
   
   try {
-    // S3から写真一覧を取得
-    const listCommand = new ListObjectsV2Command({
-      Bucket: config.bucketName,
-      Prefix: `venues/${venueId}/`,
-    })
+    const collectionId = resolveVenueCollection(venueId)
     
-    const listResult = await s3Client.send(listCommand)
-    const photos = listResult.Contents?.filter(obj => 
-      obj.Key?.endsWith('.jpg') || obj.Key?.endsWith('.jpeg') || obj.Key?.endsWith('.png') || obj.Key?.endsWith('.JPG')
-    ) || []
+    // コレクションを作成（冪等性を保つ）
+    try {
+      await rekognitionClient.send(new CreateCollectionCommand({ CollectionId: collectionId }))
+      console.log(`${venueId}: コレクション ${collectionId} を作成しました`)
+    } catch (e) {
+      if (e.name === 'ResourceAlreadyExistsException') {
+        console.log(`${venueId}: コレクション ${collectionId} は既に存在します`)
+      } else {
+        throw e
+      }
+    }
+    
+    // S3から写真一覧を取得（ページネーション対応）
+    const keys = await listAllKeys(config.bucketName, `venues/${venueId}/`)
+    const photos = keys.filter(key => 
+      key.endsWith('.jpg') || key.endsWith('.jpeg') || key.endsWith('.png') || key.endsWith('.JPG')
+    )
     
     console.log(`${venueId}: ${photos.length}枚の写真を発見`)
     
@@ -94,24 +125,21 @@ async function preIndexVenue(venueId, config) {
     
     let indexedFaces = 0
     let errors = 0
-    const faceMapping = {}
     
     // 各写真に対して顔を検出してコレクションに登録
-    for (const photo of photos) {
-      if (!photo.Key) continue
-      
+    for (const Key of photos) {
       try {
         // S3から画像を取得
         const getObjectCommand = new GetObjectCommand({
           Bucket: config.bucketName,
-          Key: photo.Key,
+          Key: Key,
         })
         
         const imageObject = await s3Client.send(getObjectCommand)
         const imageBuffer = await imageObject.Body?.transformToByteArray()
         
         if (!imageBuffer) {
-          console.error(`${photo.Key}: 画像データの取得に失敗`)
+          console.error(`${Key}: 画像データの取得に失敗`)
           errors++
           continue
         }
@@ -130,35 +158,28 @@ async function preIndexVenue(venueId, config) {
         const detectResult = await rekognitionClient.send(detectCommand)
         
         if (!detectResult.FaceDetails || detectResult.FaceDetails.length === 0) {
-          console.log(`${photo.Key}: 顔が検出されませんでした`)
+          console.log(`${Key}: 顔が検出されませんでした`)
           continue
         }
         
-        // 顔をコレクションに登録
+        // 顔をコレクションに登録（ExternalImageIdにS3キーを設定）
         const indexCommand = new IndexFacesCommand({
-          CollectionId: config.collectionId,
+          CollectionId: collectionId,
           Image: {
             Bytes: processedBuffer,
           },
-          DetectionAttributes: ['ALL'],
-          ExternalImageId: photo.Key.replace(/[^a-zA-Z0-9_.\-:]/g, '_'), // 写真のパスを外部IDとして保存（特殊文字を置換）
+          QualityFilter: 'AUTO',
+          ExternalImageId: Key.replace(/\//g, '_'),     // ★ スラッシュをアンダースコアに置換
+          MaxFaces: 5
         })
         
         const indexResult = await rekognitionClient.send(indexCommand)
         
         if (indexResult.FaceRecords && indexResult.FaceRecords.length > 0) {
           indexedFaces += indexResult.FaceRecords.length
-          
-          // FaceIDマッピングを保存
-          indexResult.FaceRecords.forEach(record => {
-            if (record.Face?.FaceId) {
-              faceMapping[photo.Key] = record.Face.FaceId
-            }
-          })
-          
-          console.log(`${photo.Key}: ${indexResult.FaceRecords.length}個の顔を登録`)
+          console.log(`${Key}: ${indexResult.FaceRecords.length}個の顔を登録`)
         } else {
-          console.log(`${photo.Key}: 顔の登録に失敗`)
+          console.log(`${Key}: 顔の登録に失敗`)
           errors++
         }
         
@@ -166,7 +187,7 @@ async function preIndexVenue(venueId, config) {
         await new Promise(resolve => setTimeout(resolve, 100))
         
       } catch (error) {
-        console.error(`${photo.Key}: エラー - ${error.message}`)
+        console.error(`${Key}: エラー - ${error.message}`)
         errors++
       }
     }
@@ -177,13 +198,12 @@ async function preIndexVenue(venueId, config) {
       venueId, 
       indexedFaces, 
       errors, 
-      totalPhotos: photos.length,
-      faceMapping
+      totalPhotos: photos.length
     }
     
   } catch (error) {
     console.error(`${venueId} の処理でエラー:`, error)
-    return { venueId, indexedFaces: 0, errors: 1, totalPhotos: 0, faceMapping: {} }
+    return { venueId, indexedFaces: 0, errors: 1, totalPhotos: 0 }
   }
 }
 
@@ -193,11 +213,9 @@ async function main() {
   
   try {
     const config = await loadConfig()
-    console.log(`コレクションID: ${config.collectionId}`)
     console.log(`S3バケット: ${config.bucketName}`)
     
     const results = []
-    const allFaceMappings = {}
     
     // 指定された会場のみ処理するか、全会場処理するか
     const targetVenues = process.argv[2] ? [process.argv[2]] : venues
@@ -205,9 +223,6 @@ async function main() {
     for (const venue of targetVenues) {
       const result = await preIndexVenue(venue, config)
       results.push(result)
-      
-      // FaceIDマッピングを統合
-      Object.assign(allFaceMappings, result.faceMapping)
       
       // 会場間で少し待機
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -227,12 +242,6 @@ async function main() {
     results.forEach(result => {
       console.log(`${result.venueId}: ${result.indexedFaces}個の顔, ${result.errors}個のエラー`)
     })
-    
-    // FaceIDマッピングをファイルに保存
-    const fs = require('fs')
-    const mappingPath = './face-id-mapping.json'
-    fs.writeFileSync(mappingPath, JSON.stringify(allFaceMappings, null, 2))
-    console.log(`\nFaceIDマッピングを保存: ${mappingPath}`)
     
   } catch (error) {
     console.error('メイン処理でエラー:', error)

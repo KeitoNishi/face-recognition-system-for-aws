@@ -6,11 +6,18 @@ import {
   DetectFacesCommand,
 } from "@aws-sdk/client-rekognition"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import https from 'https'
+import { NodeHttpHandler } from '@smithy/node-http-handler'
 
 // AWS設定
 const region = process.env.AWS_REGION || "ap-northeast-1"
+
+// Keep-Alive最適化のためのhttps.Agent
+const agent = new https.Agent({ keepAlive: true, maxSockets: 64 })
+
 const s3Client = new S3Client({
   region,
+  requestHandler: new NodeHttpHandler({ httpsAgent: agent }),
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -19,6 +26,7 @@ const s3Client = new S3Client({
 
 const rekognitionClient = new RekognitionClient({
   region,
+  requestHandler: new NodeHttpHandler({ httpsAgent: agent }),
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -27,6 +35,11 @@ const rekognitionClient = new RekognitionClient({
 
 const bucketName = process.env.S3_BUCKET_NAME!
 const collectionId = process.env.REKOGNITION_COLLECTION_ID!
+const collectionPrefix = process.env.REKOG_COLLECTION_PREFIX || 'face-recognition'
+
+// 会場別コレクションIDを解決
+export const resolveVenueCollection = (venueId: string) =>
+  `${collectionPrefix}-${venueId}`  // 例: face-recognition-venue_01
 
 // S3に写真をアップロード
 export async function uploadPhotoToS3(file: Buffer, key: string, contentType: string) {
@@ -100,3 +113,6 @@ export async function searchFacesByImage(imageBuffer: Buffer, maxResults = 100) 
     return []
   }
 }
+
+// エクスポート
+export { s3Client, rekognitionClient, bucketName, collectionPrefix }

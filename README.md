@@ -14,10 +14,37 @@
 ## 機能
 
 - パスワード認証によるギャラリーアクセス
-- 顔認識による写真絞り込み機能
+- **爆速絞り込み機能**（会場別コレクション + Bytes直送）
 - レスポンシブデザイン
 - モーダル表示による写真詳細表示
 - 写真ダウンロード機能
+
+## 爆速絞り込み機能
+
+### 最適化内容
+
+1. **会場別コレクション検索**: 各会場専用のRekognitionコレクション
+2. **ExternalImageId=S3キー**: マッピング不要で直接S3キー取得
+3. **Bytes直送**: S3参照のRTT削減
+4. **Keep-Alive最適化**: AWS SDK v3での接続再利用
+5. **S3ページネーション対応**: 1000件超の全件取得
+
+### 環境変数設定
+
+```bash
+# AWS設定
+AWS_REGION=ap-northeast-1
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# S3設定
+S3_BUCKET_NAME=face-recognition-system-bucket
+
+# Rekognition設定
+REKOGNITION_COLLECTION_ID=face-recognition-collection
+REKOG_COLLECTION_PREFIX=face-recognition        # 新規: 会場別に接頭辞
+REKOG_FALLBACK_COLLECTION=face-recognition-collection  # 旧グローバル（移行期間のみ）
+```
 
 ## ローカル開発
 
@@ -37,6 +64,9 @@ npm install
 2. 環境変数の設定
 ```bash
 export AWS_REGION=ap-northeast-1
+export S3_BUCKET_NAME=your-bucket-name
+export REKOG_COLLECTION_PREFIX=face-recognition
+export REKOG_FALLBACK_COLLECTION=face-recognition-collection
 ```
 
 3. 開発サーバーの起動
@@ -92,11 +122,21 @@ pm2 startup
 
 ```
 bucket-name/
-├── gallery/
+├── venues/
 │   └── venue_01/
 │       ├── 0001.jpg
 │       ├── 0002.jpg
 │       └── ...
+```
+
+### 会場別コレクション作成
+
+```bash
+# 特定会場の再インデックス
+node scripts/pre-index-venue-photos.js venue_01
+
+# 全会場の再インデックス
+node scripts/pre-index-venue-photos.js
 ```
 
 ## ライセンス

@@ -8,13 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "create-collection": "node scripts/create-rekognition-collection.js",
-    "pre-index": "node scripts/pre-index-venue-photos.js"
+    "pre-index": "node scripts/pre-index-venue-photos.js",
+    "test-efficient": "node scripts/test-efficient-filter.js"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "latest",
     "@aws-sdk/client-s3": "latest",
     "@aws-sdk/client-ssm": "latest",
     "@aws-sdk/s3-request-presigner": "latest",
+    "@smithy/node-http-handler": "^2.0.0",
     "axios": "^1.11.0",
     "next": "15.2.4",
     "react": "^19",

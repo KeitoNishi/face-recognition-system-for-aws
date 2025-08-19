@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { indexFace, detectFaces } from '@/lib/aws'
-import { loadConfigFromParameterStore } from '@/lib/parameter-store'
+import { IndexFacesCommand } from '@aws-sdk/client-rekognition'
+import { rekognitionClient, resolveVenueCollection } from '@/lib/aws'
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const file = formData.get('faceImage') as File
+    const venueId = String(formData.get('venueId') || '')
+    const file = formData.get('file') as File | null
     
-    if (!file) {
-      return NextResponse.json(
-        { error: '顔写真がアップロードされていません' },
-        { status: 400 }
-      )
+    if (!venueId || !file) {
+      return NextResponse.json({ error: 'venueId & file required' }, { status: 400 })
     }
 
     // ファイルサイズチェック（5MB以下）
@@ -32,43 +30,48 @@ export async function POST(request: NextRequest) {
     }
 
     // ファイルをバッファに変換
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    // 顔が含まれているかチェック
-    const hasFaces = await detectFaces(buffer)
-    if (!hasFaces) {
-      return NextResponse.json(
-        { error: '顔が検出されませんでした。顔がはっきり写っている写真を選択してください。' },
-        { status: 400 }
-      )
-    }
+    const bytes = Buffer.from(await file.arrayBuffer())
+    const collectionId = resolveVenueCollection(venueId)
 
     // 顔をRekognitionコレクションに登録
-    const faceId = await indexFace(buffer)
+    const out = await rekognitionClient.send(new IndexFacesCommand({
+      CollectionId: collectionId,
+      Image: { Bytes: bytes },
+      QualityFilter: 'AUTO',
+      // ★ セッション登録なら、セッションキーを生成して ExternalImageId に残す設計も可
+      ExternalImageId: `sessions/${venueId}/${Date.now()}.jpg`,
+      MaxFaces: 5
+    }))
 
-    // セッションに顔情報を保存
-    const faceInfo = {
-      faceId: faceId,
-      registeredAt: new Date().toISOString(),
-      confidence: 95.5 // 仮の値、実際はRekognitionから取得
+    if (out.FaceRecords && out.FaceRecords.length > 0) {
+      const faceId = out.FaceRecords[0].Face?.FaceId
+      
+      // セッションに顔情報を保存
+      const faceInfo = {
+        faceId: faceId,
+        registeredAt: new Date().toISOString(),
+        confidence: 95.5 // 仮の値、実際はRekognitionから取得
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        faceId: faceId,
+        faceInfo: faceInfo,
+        message: '顔写真が正常に登録されました（セッション限定）'
+      })
+
+      // セッションクッキーに顔情報を保存（セッション終了時に自動削除）
+      response.cookies.set('face_info', JSON.stringify(faceInfo), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        // maxAgeを設定しない = ブラウザセッション終了時に自動削除
+      })
+
+      return response
+    } else {
+      throw new Error("顔を検出できませんでした")
     }
-
-    const response = NextResponse.json({
-      success: true,
-      faceId: faceId,
-      faceInfo: faceInfo,
-      message: '顔写真が正常に登録されました（セッション限定）'
-    })
-
-    // セッションクッキーに顔情報を保存（セッション終了時に自動削除）
-    response.cookies.set('face_info', JSON.stringify(faceInfo), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      // maxAgeを設定しない = ブラウザセッション終了時に自動削除
-    })
-
-    return response
 
   } catch (error) {
     console.error('顔写真登録エラー:', error)
