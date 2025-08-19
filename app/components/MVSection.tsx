@@ -135,7 +135,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           display: flex;
           gap: 15px;
           align-items: center;
-          padding-right: 0;
+          padding-right: 35px;
           flex-wrap: nowrap;
         }
         
@@ -144,7 +144,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           border: none;
           padding: 6px 12px;
           font-size: 14px;
-          color: #333;
+          color: #555;
           cursor: pointer;
           border-radius: 20px;
           transition: all 0.3s ease;
@@ -159,12 +159,13 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
         }
         
         .nav-item.logout-btn {
-          background: rgba(220, 53, 69, 0.1);
-          color: #dc3545;
+          background: none;
+          color: #555;
         }
         
         .nav-item.logout-btn:hover {
-          background: rgba(220, 53, 69, 0.2);
+          background: rgba(0, 123, 255, 0.1);
+          color: #007bff;
         }
         
         .nav-item.logout-btn:disabled {
