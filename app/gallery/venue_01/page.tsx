@@ -271,8 +271,20 @@ export default function VenueGallery() {
 		console.log(`Image loaded: ${photoId}`)
 	}
 
-	const handleImageError = (photo: Photo) => {
-		console.error('Image load error:', photo.url)
+	const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, photo: Photo) => {
+		const failed = (e.target as HTMLImageElement).src
+		const fallback = photo.thumbUrl ?? `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=480`
+		console.error('Thumb load error:', failed, 'fallback->', fallback)
+	}
+
+	// モーダル表示直前にフル画像のsrcをセット（遅延読み込み）
+	const prepareModal = (safeId: string, fullUrl: string) => {
+		const el = document.getElementById(safeId)
+		if (!el) return
+		const img = el.querySelector('img[data-full]') as HTMLImageElement | null
+		if (img && !img.getAttribute('src')) {
+			img.src = fullUrl
+		}
 	}
 
 	console.log('Current state:', { isLoading, photosCount: photos.length, photos })
@@ -464,10 +476,10 @@ export default function VenueGallery() {
 			<section id="wrapper">
 				<h2>第1会場（4F ホールC）</h2>
 				
-				<div id="gallery">
-					{photos.map((photo) => (
+										<div id="gallery">
+							{photos.map((photo, index) => (
 						<div key={photo.id}>
-							<a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`}>
+							<a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} onClick={() => prepareModal(("photo_" + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_'), photo.url)}>
 								<figure>
 									<div style={{ position: 'relative', width: '100%', height: '200px' }}>
 										{!loadedImages.has(photo.id) && (
@@ -491,27 +503,31 @@ export default function VenueGallery() {
 											const src480 = `${base}&w=480`
 											const src640 = `${base}&w=640`
 											return (
-												<img 
-													src={src480}
-													srcSet={`${src320} 320w, ${src480} 480w, ${src640} 640w`}
-													sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, 640px"
-													alt=""
-													width={400}
-													height={200}
-													loading="lazy"
-													decoding="async"
-													fetchPriority="low"
-													style={{
-														width: '100%',
-														height: '200px',
-														objectFit: 'cover',
-														border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
-														opacity: loadedImages.has(photo.id) ? 1 : 0.3,
-														transition: 'opacity 0.3s ease-in-out'
-													}}
-													onLoad={() => handleImageLoad(photo.id)}
-													onError={() => handleImageError(photo)}
-												/>
+																						<img 
+											src={src480}
+											srcSet={`${src320} 320w, ${src480} 480w, ${src640} 640w`}
+											sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, 640px"
+											alt=""
+											width={400}
+											height={200}
+											loading="lazy"
+											decoding="async"
+											fetchPriority={index < 3 ? 'high' : 'low'}
+											style={{
+												width: '100%',
+												height: '200px',
+												objectFit: 'cover',
+												border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
+												opacity: loadedImages.has(photo.id) ? 1 : 0.3,
+												transition: 'opacity 0.3s ease-in-out'
+											}}
+											onLoad={() => handleImageLoad(photo.id)}
+											onError={(e) => {
+												handleImageError(e, photo)
+												const baseThumb = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
+												;(e.target as HTMLImageElement).src = `${baseThumb}&w=480`
+											}}
+										/>
 											)
 										})()}
 
@@ -521,7 +537,7 @@ export default function VenueGallery() {
 							<div id={`${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} className="">
 								<figure>
 									<img 
-										src={photo.url} 
+										data-full={photo.url}
 										alt=""
 										style={{ maxWidth: '100%', height: 'auto' }}
 									/>

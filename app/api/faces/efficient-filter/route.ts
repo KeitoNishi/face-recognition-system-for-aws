@@ -11,7 +11,17 @@ const s3 = new S3Client({ region })
 const fallback = process.env.REKOG_FALLBACK_COLLECTION
 
 const buildPhoto = (extId: string, similarity: number) => {
-  const s3Key = extId.replace(/_/g, '/')  // アンダースコアをスラッシュに戻す
+  const decodeExternalImageIdToS3Key = (id: string): string => {
+    // 既知パターン: venues/venue_XX/<rest>
+    const m = id.match(/^venues_venue_(\d{2})_(.+)$/)
+    if (m) return `venues/venue_${m[1]}/${m[2]}`
+    // フォールバック: 先頭の 'venues_' を 'venues/' にだけ置換し、'venue_XX_' の後をパス区切りとみなす
+    const m2 = id.match(/^(venues)_venue_(\d{2})_(.+)$/)
+    if (m2) return `${m2[1]}/venue_${m2[2]}/${m2[3]}`
+    // 最後の手段: 変換せず返す（thumb API 側で 404 になっても他に影響しない）
+    return id
+  }
+  const s3Key = decodeExternalImageIdToS3Key(extId)
   return {
     id: s3Key,
     filename: s3Key.split('/').pop() || s3Key,
@@ -96,7 +106,8 @@ export async function POST(req: NextRequest) {
 
           const withUrls = await Promise.all(items.map(async p => {
             const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucketName, Key: p.s3Key }), { expiresIn: 600 })
-            return { ...p, url }
+            const thumbUrl = `/api/photos/thumb?s3Key=${encodeURIComponent(p.s3Key)}&w=480`
+            return { ...p, url, thumbUrl }
           }))
 
           return NextResponse.json({ photos: withUrls }, { status: 200 })
