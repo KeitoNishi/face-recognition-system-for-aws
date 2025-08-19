@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
   try {
     const { venueId } = await request.json()
     
+    console.log('API received venueId:', venueId)
+    
     if (!venueId) {
       return NextResponse.json(
         { error: '会場IDが指定されていません' },
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
 
     const response = await s3Client.send(command)
     
+    console.log(`S3 response for ${venueId}:`, response.Contents?.length || 0, 'files found')
+    
     if (!response.Contents) {
       return NextResponse.json({ photos: [] })
     }
@@ -52,6 +56,8 @@ export async function POST(request: NextRequest) {
       const extension = key.toLowerCase().split('.').pop()
       return ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '')
     })
+    
+    console.log(`Filtered images for ${venueId}:`, imageFiles.length, 'images')
 
     const photos = imageFiles.map((obj, index) => ({
       id: `${venueId}_${index + 1}`,

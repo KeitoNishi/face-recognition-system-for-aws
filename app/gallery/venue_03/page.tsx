@@ -176,6 +176,7 @@ export default function VenueGallery() {
 
   const handleImageLoad = (photoId: string) => {
     setLoadedImages(prev => new Set(prev).add(photoId))
+    console.log(`Image loaded: ${photoId}`)
   }
 
   const handleImageError = (photo: Photo) => {
@@ -272,12 +273,12 @@ export default function VenueGallery() {
       <Script 
         src="https://code.jquery.com/jquery-3.6.0.min.js" 
         strategy="beforeInteractive"
-        onLoad={() => console.log('jQuery loaded in component')}
+        onReady={() => console.log('jQuery loaded in component')}
       />
       <Script 
         src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js" 
         strategy="afterInteractive"
-        onLoad={() => console.log('Modaal loaded in component')}
+        onReady={() => console.log('Modaal loaded in component')}
       />
       <div id="container">
         <section id="mv">
@@ -338,6 +339,22 @@ export default function VenueGallery() {
             <div key={photo.id}>
               <a href={`#photo_${photo.id}`}>
                 <figure>
+                                  <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                  {!loadedImages.has(photo.id) && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '30px',
+                      height: '30px',
+                      border: '3px solid #f3f3f3',
+                      borderTop: '3px solid #007bff',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                      zIndex: 1
+                    }}></div>
+                  )}
                   <img 
                     src={photo.url} 
                     alt=""
@@ -345,12 +362,15 @@ export default function VenueGallery() {
                       width: '100%',
                       height: '200px',
                       objectFit: 'cover',
-                      border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6'
+                      border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
+                      opacity: loadedImages.has(photo.id) ? 1 : 0.3,
+                      transition: 'opacity 0.3s ease-in-out'
                     }}
                     loading="lazy"
                     onLoad={() => handleImageLoad(photo.id)}
                     onError={() => handleImageError(photo)}
                   />
+                </div>
                 </figure>
               </a>
               <div id={`photo_${photo.id}`} className="">
