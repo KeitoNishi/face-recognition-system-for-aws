@@ -565,22 +565,26 @@ export default function VenueGallery() {
 											/>
 										)
 									})()}
-								</figure>
-								<p>
+																</figure>
+								<p style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+									<a 
+										href="#" 
+										onClick={(e) => {
+											e.preventDefault();
+											// 新規タブで原本を開く
+											window.open(photo.url, '_blank', 'noopener,noreferrer');
+										}}
+									>
+										表示
+									</a>
 									<a 
 										href="#" 
 										onClick={async (e) => {
 											e.preventDefault();
-											// 押下時にだけ原本URLを取得してダウンロード
-											const link = document.createElement('a');
-											link.href = photo.url;
-											link.download = photo.filename;
-											document.body.appendChild(link);
-											link.click();
-											document.body.removeChild(link);
+											await handleDownload(photo);
 										}}
 									>
-																											表示
+										ダウンロード
 									</a>
 								</p>
 							</div>
