@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { loadConfigFromParameterStore } from '@/lib/parameter-store'
 import fs from 'fs'
 import path from 'path'
@@ -106,13 +107,20 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    console.log(`Matched photos: ${matchedPhotos.length}`)
+    // サインドURLとサムネイルURLを付与
+    const withUrls = await Promise.all(matchedPhotos.map(async (p: any) => {
+      const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucketName, Key: p.s3Key }), { expiresIn: 600 })
+      const thumbUrl = `/api/photos/thumb?s3Key=${encodeURIComponent(p.s3Key)}&w=480`
+      return { ...p, url, thumbUrl }
+    }))
+    
+    console.log(`Matched photos: ${withUrls.length}`)
     
     const processingTime = Date.now() - startTime
     
     // 4. 結果をキャッシュに保存
     resultCache.set(cacheKey, {
-      photos: matchedPhotos,
+      photos: withUrls,
       timestamp: Date.now()
     })
     
@@ -128,9 +136,9 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      matchedPhotos: matchedPhotos,
+      matchedPhotos: withUrls,
       totalPhotos: Object.keys(faceMapping).filter(key => key.includes(`venues/${venueId}/`)).length,
-      matchedCount: matchedPhotos.length,
+      matchedCount: withUrls.length,
       processingTime: `${processingTime}ms`,
       userFaceId: userFaceId,
       fromCache: false,
