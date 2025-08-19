@@ -26,6 +26,7 @@ export default function VenueGallery() {
 	const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
 	const [isLoggingOut, setIsLoggingOut] = useState(false)
 	const [filterProgress, setFilterProgress] = useState(0)
+	const [hasFace, setHasFace] = useState(false)
 	const router = useRouter()
 
 	// セッション状態を確認
@@ -33,6 +34,7 @@ export default function VenueGallery() {
 		const verifySession = async () => {
 			const state = await checkSession()
 			setSessionState(state)
+			setHasFace(!!state.faceInfo)
 			
 			// 認証されていない場合はログインページにリダイレクト
 			if (!state.authenticated) {
@@ -392,7 +394,7 @@ export default function VenueGallery() {
 						type="button" 
 						value={isFiltering ? "処理中..." : "写真を絞り込む"}
 						onClick={handleFaceFilter}
-						disabled={isFiltering}
+						disabled={isFiltering || !hasFace}
 					/>
 					{!showAllPhotos && (
 						<input 
