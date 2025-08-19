@@ -19,6 +19,7 @@ export default function Home() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isFaceUploadModalOpen, setIsFaceUploadModalOpen] = useState(false)
   const [faceInfo, setFaceInfo] = useState<any>(null)
+  const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false)
   const router = useRouter()
 
   // 会場一覧データ
@@ -140,28 +141,42 @@ export default function Home() {
       />
       
       <section id="upload">
-        <dl>
-          <dt>顔写真登録</dt>
-          <dd>顔写真を登録すると、フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真が絞り込んで表示されます。
-          <p className="note">取り込まれた顔写真は、ユーザー情報とは一切紐付けられず、今回の写真照合のみに使用されます。照合完了後は速やかに破棄され、システム上に保存されることはありません。</p>
-          </dd>
-        </dl>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {faceInfo ? (
-            <input 
-              className="upload_btn" 
-              type="button" 
-              value="顔写真を再登録する" 
-              onClick={() => setIsFaceUploadModalOpen(true)}
-            />
-          ) : (
-            <input 
-              className="upload_btn" 
-              type="button" 
-              value="顔写真を登録する" 
-              onClick={() => setIsFaceUploadModalOpen(true)}
-            />
-          )}
+        <div className="upload-header" onClick={() => setIsUploadSectionExpanded(!isUploadSectionExpanded)}>
+          <h3>顔写真登録</h3>
+          <span className={`expand-icon ${isUploadSectionExpanded ? 'expanded' : ''}`}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </div>
+        
+        <div className={`upload-content ${isUploadSectionExpanded ? 'expanded' : ''}`}>
+          <dl>
+            <dd>
+              顔写真を登録すると、フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真が絞り込んで表示されます。
+              <br /><br />
+              <p className="note">
+                取り込まれた顔写真は、ユーザー情報とは一切紐付けられず、今回の写真照合のみに使用されます。照合完了後は速やかに破棄され、システム上に保存されることはありません。
+              </p>
+            </dd>
+          </dl>
+          <div className="upload-button-container">
+            {faceInfo ? (
+              <input 
+                className="upload_btn" 
+                type="button" 
+                value="顔写真を再登録する" 
+                onClick={() => setIsFaceUploadModalOpen(true)}
+              />
+            ) : (
+              <input 
+                className="upload_btn" 
+                type="button" 
+                value="顔写真を登録する" 
+                onClick={() => setIsFaceUploadModalOpen(true)}
+              />
+            )}
+          </div>
         </div>
       </section>
       
@@ -414,6 +429,82 @@ export default function Home() {
           .nav-container {
             padding: 0 10px;
           }
+        }
+        
+        /* アコーディオン形式のアップロードセクション */
+        .upload-header {
+          display: none;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border: 1px solid #e9ecef;
+        }
+        
+        .upload-header:hover {
+          background: #e9ecef;
+        }
+        
+        .upload-header h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #333;
+        }
+        
+        .expand-icon {
+          transition: transform 0.3s ease;
+          color: #6c757d;
+        }
+        
+        .expand-icon.expanded {
+          transform: rotate(180deg);
+        }
+        
+        .upload-content {
+          max-height: none;
+          overflow: visible;
+          transition: max-height 0.3s ease, padding 0.3s ease;
+          padding: 20px;
+        }
+        
+        @media (min-width: 769px) {
+          .upload-header {
+            display: none;
+          }
+          
+          .upload-content {
+            max-height: none;
+            overflow: visible;
+            padding: 20px;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .upload-header {
+            display: flex;
+          }
+          
+          .upload-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 20px;
+          }
+          
+          .upload-content.expanded {
+            max-height: 500px;
+            padding: 20px;
+          }
+        }
+        
+        .upload-button-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 20px;
         }
       `}</style>
     </div>

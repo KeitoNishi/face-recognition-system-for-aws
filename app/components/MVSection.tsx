@@ -2,15 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import FaceUploadModal from '@/app/components/FaceUploadModal'
 
 interface MVSectionProps {
   onLogout: () => Promise<void>
   isLoggingOut?: boolean
+  onOpenFaceUploadModal?: () => void
 }
 
-export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionProps) {
+export default function MVSection({ onLogout, isLoggingOut = false, onOpenFaceUploadModal }: MVSectionProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
+  const [isInternalModalOpen, setIsInternalModalOpen] = useState(false)
 
   const handleMenuClick = (action: string) => {
     setIsMenuOpen(false)
@@ -19,7 +22,11 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
         router.push('/')
         break
       case 'register':
-        router.push('/register-face')
+        if (onOpenFaceUploadModal) {
+          onOpenFaceUploadModal()
+        } else {
+          setIsInternalModalOpen(true)
+        }
         break
       case 'logout':
         onLogout()
@@ -89,6 +96,17 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           </button>
         </div>
       </nav>
+      
+      {/* 内蔵モーダル（プロップ未指定時のフォールバック） */}
+      <FaceUploadModal 
+        isOpen={isInternalModalOpen}
+        onClose={() => setIsInternalModalOpen(false)}
+        onSuccess={() => {
+          setIsInternalModalOpen(false)
+          // 必要に応じて画面を更新（セッション更新反映のため）
+          // location.reload()
+        }}
+      />
       
       <div>
         <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>

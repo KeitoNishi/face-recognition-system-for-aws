@@ -213,7 +213,7 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
           display: flex;
           justify-content: center;
           align-items: center;
-          z-index: 1000;
+          z-index: 2000;
         }
 
         .modal-content {
@@ -380,6 +380,16 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
         .cancel-button:disabled {
           background: #ccc;
           cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+          .modal-content { width: 100%; height: 100dvh; max-height: none; border-radius: 0; display: flex; flex-direction: column; }
+          .modal-header { position: sticky; top: 0; background: #fff; z-index: 1; padding: 16px; }
+          .modal-body { flex: 1; overflow-y: auto; padding: 16px; }
+          .modal-footer { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #eee; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+          .cancel-button, .upload-button { width: 100%; }
+          .upload-placeholder { padding: 24px 12px; }
+          .preview-image { max-height: 40vh; }
         }
       `}</style>
     </div>
