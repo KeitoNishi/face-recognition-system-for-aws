@@ -6,7 +6,7 @@ import { Photo } from '../types'
 interface PhotoGalleryProps {
   photos: Photo[]
   venueName: string
-  onDownload: (photo: Photo) => Promise<void>
+  onDownload: (photo: Photo) => Promise<boolean>
 }
 
 export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGalleryProps) {
