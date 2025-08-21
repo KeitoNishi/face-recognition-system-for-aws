@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { FaceUploadProvider } from './components/FaceUploadProvider'
 
 export const metadata: Metadata = {
   title: '第129回日本眼科学会総会 フォトギャラリー',
@@ -22,7 +23,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/css/modaal.min.css" />
       </head>
       <body>
-        {children}
+        <FaceUploadProvider>
+          {children}
+        </FaceUploadProvider>
         <Script src="/jquery.min.js" strategy="beforeInteractive" />
         <Script src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js" strategy="afterInteractive" />
         <Script src="/function.js" strategy="afterInteractive" />

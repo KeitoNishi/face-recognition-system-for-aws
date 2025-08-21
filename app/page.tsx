@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, logout, isProtectedRoute } from '@/lib/session'
-import FaceUploadModal from '@/app/components/FaceUploadModal'
+import { FaceUploadProvider, useFaceUpload } from '@/app/components/FaceUploadProvider'
 import MVSection from '@/app/components/MVSection'
 
 interface Venue {
@@ -13,14 +13,14 @@ interface Venue {
   path: string
 }
 
-export default function Home() {
+function HomeContent() {
   const [venues, setVenues] = useState<Venue[]>([])
   const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [isFaceUploadModalOpen, setIsFaceUploadModalOpen] = useState(false)
   const [faceInfo, setFaceInfo] = useState<any>(null)
   const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false)
   const router = useRouter()
+  const { openFaceUploadModal } = useFaceUpload()
 
   // 会場一覧データ
   const venueList: Venue[] = [
@@ -87,6 +87,18 @@ export default function Home() {
     } finally {
       setIsLoggingOut(false)
     }
+  }
+
+  const handleFaceUploadSuccess = () => {
+    console.log('顔写真が正常に登録されました')
+    // セッション状態を再確認して顔情報を更新
+    const verifySession = async () => {
+      const state = await checkSession()
+      if (state.faceInfo) {
+        setFaceInfo(state.faceInfo)
+      }
+    }
+    verifySession()
   }
 
   // ローディング中
@@ -166,14 +178,14 @@ export default function Home() {
                 className="upload_btn" 
                 type="button" 
                 value="顔写真を再登録する" 
-                onClick={() => setIsFaceUploadModalOpen(true)}
+                onClick={openFaceUploadModal}
               />
             ) : (
               <input 
                 className="upload_btn" 
                 type="button" 
                 value="顔写真を登録する" 
-                onClick={() => setIsFaceUploadModalOpen(true)}
+                onClick={openFaceUploadModal}
               />
             )}
           </div>
@@ -200,23 +212,6 @@ export default function Home() {
       </footer>
       
       <p id="pagetop"><a href="#"></a></p>
-
-      {/* 顔写真登録モーダル */}
-      <FaceUploadModal
-        isOpen={isFaceUploadModalOpen}
-        onClose={() => setIsFaceUploadModalOpen(false)}
-        onSuccess={() => {
-          console.log('顔写真が正常に登録されました')
-          // セッション状態を再確認して顔情報を更新
-          const verifySession = async () => {
-            const state = await checkSession()
-            if (state.faceInfo) {
-              setFaceInfo(state.faceInfo)
-            }
-          }
-          verifySession()
-        }}
-      />
       
       <style jsx>{`
         @keyframes spin {
@@ -509,4 +504,8 @@ export default function Home() {
       `}</style>
     </div>
   )
+}
+
+export default function Home() {
+  return <HomeContent />
 }
