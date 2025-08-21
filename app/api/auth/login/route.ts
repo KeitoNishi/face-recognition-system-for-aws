@@ -23,13 +23,13 @@ export async function POST(request: NextRequest) {
       const response = NextResponse.json({ 
         success: true, 
         message: 'ログインに成功しました',
-        redirectUrl: config.login_redirect_url
+        redirectUrl: config.login_redirect_url || '/'
       })
       
       // セッションクッキーを設定（24時間有効）
       response.cookies.set('session_id', sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // HTTP環境のためfalseに設定
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 // 24時間
       })

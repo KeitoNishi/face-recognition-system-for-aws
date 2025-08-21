@@ -10,7 +10,7 @@ export async function POST() {
     // セッションクッキーを削除
     response.cookies.set('session_id', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // HTTP環境のためfalseに設定
       sameSite: 'lax',
       maxAge: 0 // 即座に削除
     })
@@ -18,7 +18,7 @@ export async function POST() {
     // 顔情報クッキーも削除（プライバシー保護）
     response.cookies.set('face_info', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // HTTP環境のためfalseに設定
       sameSite: 'lax',
       maxAge: 0 // 即座に削除
     })

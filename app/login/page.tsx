@@ -36,7 +36,8 @@ export default function LoginPage() {
           const result = await response.json()
           if (result.authenticated) {
             // 既にログイン済みの場合は会場一覧ページにリダイレクト
-            router.push(loginConfig?.redirectUrl || '/')
+            console.log('既にログイン済み、リダイレクト先:', loginConfig?.redirectUrl || '/')
+            window.location.href = loginConfig?.redirectUrl || '/'
           }
         }
       } catch (error) {
@@ -67,13 +68,18 @@ export default function LoginPage() {
 
       if (response.ok && result.success) {
         // ログイン成功 - 会場一覧ページにリダイレクト
-        router.push(result.redirectUrl || '/')
+        console.log('ログイン成功、リダイレクト先:', result.redirectUrl || '/')
+        console.log('window.location.href を実行します...')
+        setTimeout(() => {
+          window.location.href = result.redirectUrl || '/'
+        }, 100)
       } else {
         // ログイン失敗
         setError(result.error || 'ログインに失敗しました')
       }
     } catch (error) {
       console.error('ログインエラー:', error)
+      console.error('エラー詳細:', error instanceof Error ? error.message : String(error))
       setError('ログインに失敗しました')
     } finally {
       setIsLoading(false)

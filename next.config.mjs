@@ -1,4 +1,9 @@
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm"
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Parameter Storeから設定を読み込む関数
 async function loadConfigFromParameterStore() {
@@ -44,6 +49,14 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+  },
+  // パスエイリアス設定
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, './'),
+    }
+    return config
   },
   // 本番環境最適化
   compress: true,

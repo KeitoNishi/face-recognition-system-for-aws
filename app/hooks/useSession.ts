@@ -13,22 +13,28 @@ export function useSession() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
 
-  // セッション状態を確認
+  // セッション状態を確認（キャッシュ付き）
   const verifySession = async () => {
     try {
+      // 既に認証済みの場合はスキップ
+      if (sessionState.authenticated && !sessionState.loading) {
+        return sessionState
+      }
+      
       const state = await checkSession()
       setSessionState(state)
       
-      // 認証されていない場合はログインページにリダイレクト
-      if (!state.authenticated) {
-        router.push('/login')
+      // 認証されていない場合はログインページにリダイレクト（ローディング中は除く）
+      if (!state.authenticated && !state.loading) {
+        console.log('認証されていないため、ログインページにリダイレクト')
+        window.location.href = '/login'
       }
       
       return state
     } catch (error) {
       console.error('セッション確認エラー:', error)
       setSessionState({ authenticated: false, loading: false })
-      router.push('/login')
+      window.location.href = '/login'
       return { authenticated: false, loading: false }
     }
   }
@@ -39,7 +45,7 @@ export function useSession() {
     try {
       const result = await logout()
       if (result.success) {
-        router.push('/login')
+        window.location.href = '/login'
       } else {
         console.error('ログアウトエラー:', result.error)
       }

@@ -8,7 +8,7 @@ export async function GET() {
     
     const loginConfig = {
       password: config.login_password,
-      redirectUrl: config.login_redirect_url
+      redirectUrl: config.login_redirect_url || '/'
     }
     
     // 設定読み込み完了

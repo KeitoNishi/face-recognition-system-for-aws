@@ -29,9 +29,9 @@ function HomeContent() {
 
   const handleVenueClick = (venue: VenueInfo) => {
     if (sessionState.authenticated) {
-      router.push(venue.path)
+      window.location.href = venue.path
     } else {
-      router.push('/login')
+      window.location.href = '/login'
     }
   }
 
@@ -82,9 +82,48 @@ function HomeContent() {
     )
   }
 
-  // 認証されていない場合
-  if (!sessionState.authenticated) {
-    return null // ログインページにリダイレクトされる
+  // 認証されていない場合（ローディング中は除く）
+  if (!sessionState.authenticated && !sessionState.loading) {
+    // ログインページにリダイレクト
+    useEffect(() => {
+      console.log('メインページ: 認証されていないため、ログインページにリダイレクト')
+      window.location.href = '/login'
+    }, [])
+    return (
+      <div id="container">
+        <section id="mv">
+          <div>
+            <h1><img src="/images/title.svg" alt="第129回日本眼科学会総会 フォトギャラリー"/></h1>
+            <div>
+              <p><img src="/images/date.svg" alt="会期：2025年4月17日（木）～4月20日（日）"/></p>
+              <p><img src="/images/venue.svg" alt="会場：東京国際フォーラム"/></p>
+            </div>
+          </div>
+        </section>
+        
+        <section id="wrapper">
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ 
+              width: '50px', 
+              height: '50px', 
+              border: '3px solid #f3f3f3', 
+              borderTop: '3px solid #007bff', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 20px'
+            }}></div>
+            <p>認証状態を確認中...</p>
+          </div>
+        </section>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    )
   }
 
   return (

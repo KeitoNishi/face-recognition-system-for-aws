@@ -27,7 +27,7 @@ if [ $? -ne 0 ]; then
 fi
 echo "✅ ローカルビルド完了"
 
-# 3. 圧縮ファイル作成（macOS拡張属性ファイル除外）
+# 3. 圧縮ファイル作成（macOS拡張属性ファイル除外、.nextディレクトリ含む）
 echo "📦 圧縮ファイル作成中..."
 rm -f ${PROJECT_NAME}-production.tar.gz
 tar -czf ${PROJECT_NAME}-production.tar.gz \
