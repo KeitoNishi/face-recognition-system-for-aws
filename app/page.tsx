@@ -2,70 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { checkSession, logout, isProtectedRoute } from '@/lib/session'
+import { useSession } from '@/app/hooks/useSession'
 import { FaceUploadProvider, useFaceUpload } from '@/app/components/FaceUploadProvider'
 import MVSection from '@/app/components/MVSection'
-
-interface Venue {
-  id: string
-  name: string
-  location: string
-  path: string
-}
+import { VENUE_LIST } from '@/app/config/venues'
+import { VenueInfo } from '@/app/types'
 
 function HomeContent() {
-  const [venues, setVenues] = useState<Venue[]>([])
-  const [sessionState, setSessionState] = useState({ authenticated: false, loading: true })
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [venues, setVenues] = useState<VenueInfo[]>([])
   const [faceInfo, setFaceInfo] = useState<any>(null)
   const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false)
   const router = useRouter()
   const { openFaceUploadModal } = useFaceUpload()
-
-  // 会場一覧データ
-  const venueList: Venue[] = [
-    { id: 'venue_01', name: '第1会場', location: '（4F ホールC）', path: '/gallery/venue_01' },
-    { id: 'venue_02', name: '第2会場', location: '（7F ホールB7（1））', path: '/gallery/venue_02' },
-    { id: 'venue_03', name: '第3会場', location: '（7F ホールB7（2）', path: '/gallery/venue_03' },
-    { id: 'venue_04', name: '第4会場', location: '（5F ホールB5（1））', path: '/gallery/venue_04' },
-    { id: 'venue_05', name: '第5会場', location: '（5F ホールB5（2）', path: '/gallery/venue_05' },
-    { id: 'venue_06', name: '第6会場', location: '（7F ホールD7）', path: '/gallery/venue_06' },
-    { id: 'venue_07', name: '第7会場', location: '（5F ホールD5）', path: '/gallery/venue_07' },
-    { id: 'venue_08', name: '第8会場', location: '（1F ホールD1）', path: '/gallery/venue_08' },
-    { id: 'venue_09', name: '第9会場', location: '（7F G701）', path: '/gallery/venue_09' },
-    { id: 'venue_10', name: '第10会場', location: '（4F G409）', path: '/gallery/venue_10' },
-    { id: 'venue_11', name: '学術展示会場', location: '（B2F ホールE）', path: '/gallery/venue_11' },
-    { id: 'venue_12', name: '会長招宴', location: '', path: '/gallery/venue_12' },
-    { id: 'venue_13', name: '器械展示会場・おもてなしコーナー・休憩スペース', location: '', path: '/gallery/venue_13' },
-    { id: 'venue_14', name: '市民公開講座', location: '', path: '/gallery/venue_14' },
-    { id: 'venue_15', name: '開会式・総会・閉会式', location: '', path: '/gallery/venue_15' },
-  ]
+  const { sessionState, isLoggingOut, handleLogout } = useSession()
 
   useEffect(() => {
-    setVenues(venueList)
+    setVenues(VENUE_LIST)
   }, [])
 
-  // セッション状態を確認
+  // セッション状態が更新されたら顔情報を更新
   useEffect(() => {
-    const verifySession = async () => {
-      const state = await checkSession()
-      setSessionState(state)
-      
-      // 顔情報を設定
-      if (state.faceInfo) {
-        setFaceInfo(state.faceInfo)
-      }
-      
-      // 認証されていない場合はログインページにリダイレクト
-      if (!state.authenticated) {
-        router.push('/login')
-      }
+    if (sessionState.faceInfo) {
+      setFaceInfo(sessionState.faceInfo)
     }
+  }, [sessionState.faceInfo])
 
-    verifySession()
-  }, [router])
-
-  const handleVenueClick = (venue: Venue) => {
+  const handleVenueClick = (venue: VenueInfo) => {
     if (sessionState.authenticated) {
       router.push(venue.path)
     } else {
@@ -73,32 +35,12 @@ function HomeContent() {
     }
   }
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true)
-    try {
-      const result = await logout()
-      if (result.success) {
-        router.push('/login')
-      } else {
-        console.error('ログアウトエラー:', result.error)
-      }
-    } catch (error) {
-      console.error('ログアウトエラー:', error)
-    } finally {
-      setIsLoggingOut(false)
-    }
-  }
-
   const handleFaceUploadSuccess = () => {
     console.log('顔写真が正常に登録されました')
     // セッション状態を再確認して顔情報を更新
-    const verifySession = async () => {
-      const state = await checkSession()
-      if (state.faceInfo) {
-        setFaceInfo(state.faceInfo)
-      }
+    if (sessionState.faceInfo) {
+      setFaceInfo(sessionState.faceInfo)
     }
-    verifySession()
   }
 
   // ローディング中
