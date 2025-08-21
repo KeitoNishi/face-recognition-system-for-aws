@@ -82,22 +82,99 @@ npm run dev
 
 ## 本番環境デプロイ
 
+### 前提条件
+
+- EC2インスタンス（Amazon Linux 2推奨）
+- Node.js 18以上
+- PM2（プロセス管理）
+- Nginx（リバースプロキシ）
+- AWS IAMロール設定済み
+
 ### EC2での実行
 
 1. プロジェクトをEC2に転送
+```bash
+# ローカルから転送
+scp -r . ec2-user@your-ec2-ip:/home/ec2-user/face-recognition-system
+```
+
 2. 依存関係をインストール
 ```bash
-npm install
+cd /home/ec2-user/face-recognition-system
+npm install --production
 ```
 
-3. ビルド
+3. 本番環境ビルド
 ```bash
-npm run build
+npm run build:prod
 ```
 
-4. アプリケーション起動
+4. PM2でアプリケーション起動
 ```bash
-npm start
+# PM2インストール（初回のみ）
+npm install -g pm2
+
+# アプリケーション起動
+pm2 start npm --name "face-recognition" -- start:prod
+
+# 自動起動設定
+pm2 startup
+pm2 save
+```
+
+### 本番環境設定
+
+#### Parameter Store設定
+```json
+{
+  "database": {
+    "url": "postgresql://username:password@host:port/database"
+  },
+  "auth": {
+    "adminUsername": "admin",
+    "adminPassword": "secure_password",
+    "userCommonPassword": "common_user_password"
+  },
+  "aws": {
+    "accessKeyId": "your_access_key_id",
+    "secretAccessKey": "your_secret_access_key",
+    "s3Bucket": "your-s3-bucket-name",
+    "rekognitionCollectionId": "your-collection-id"
+  }
+}
+```
+
+#### Nginx設定例
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+### 監視とログ
+
+```bash
+# PM2ログ確認
+pm2 logs face-recognition
+
+# プロセス状態確認
+pm2 status
+
+# アプリケーション再起動
+pm2 restart face-recognition
 ```
 
 ### PM2での管理（推奨）

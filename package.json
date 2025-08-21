@@ -9,7 +9,13 @@
     "lint": "next lint",
     "create-collection": "node scripts/create-rekognition-collection.js",
     "pre-index": "node scripts/pre-index-venue-photos.js",
-    "test-efficient": "node scripts/test-efficient-filter.js"
+    "test-efficient": "node scripts/test-efficient-filter.js",
+    "build:prod": "NODE_ENV=production next build",
+    "start:prod": "NODE_ENV=production next start -p 3000",
+    "analyze": "ANALYZE=true next build",
+    "check-env": "bash scripts/check-environment.sh",
+    "deploy": "bash deploy_ec2.sh",
+    "deploy:safe": "npm run check-env && npm run deploy"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "latest",
