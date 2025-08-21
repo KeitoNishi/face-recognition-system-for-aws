@@ -412,27 +412,31 @@ export default function VenueGallery() {
 				</div>
 				
 				<div className={`upload-content ${isFilterSectionExpanded ? 'expanded' : ''}`}>
-					<dl>
-						<dd>
-							フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真を絞り込んで表示します。
-						</dd>
-					</dl>
-					<div className="upload-button-container">
-						<input 
-							className="upload_btn" 
-							type="button" 
-							value={isFiltering ? "処理中..." : "写真を絞り込む"}
-							onClick={handleFaceFilter}
-							disabled={isFiltering || !hasFace}
-						/>
-						{!showAllPhotos && (
+					<div className="filter-content-wrapper">
+						<div className="filter-description">
+							<dl>
+								<dd>
+									フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真を絞り込んで表示します。
+								</dd>
+							</dl>
+						</div>
+						<div className="upload-button-container">
 							<input 
 								className="upload_btn" 
 								type="button" 
-								value="全ての写真を表示"
-								onClick={handleShowAll}
+								value={isFiltering ? "処理中..." : "写真を絞り込む"}
+								onClick={handleFaceFilter}
+								disabled={isFiltering || !hasFace}
 							/>
-						)}
+							{!showAllPhotos && (
+								<input 
+									className="upload_btn" 
+									type="button" 
+									value="全ての写真を表示"
+									onClick={handleShowAll}
+								/>
+							)}
+						</div>
 					</div>
 					
 					{/* 進捗バー */}
@@ -632,13 +636,23 @@ export default function VenueGallery() {
 					padding: 20px;
 				}
 				
+				.filter-content-wrapper {
+					display: flex;
+					align-items: center;
+					gap: 20px;
+				}
+				
+				.filter-description {
+					flex: 1;
+				}
+				
 				.upload-button-container {
 					display: flex;
-					justify-content: center;
+					justify-content: flex-end;
 					align-items: center;
-					margin-top: 20px;
 					gap: 10px;
 					flex-wrap: wrap;
+					flex-shrink: 0;
 				}
 				
 				@media (max-width: 768px) {
@@ -655,6 +669,17 @@ export default function VenueGallery() {
 					.upload-content.expanded {
 						max-height: 500px;
 						padding: 20px;
+					}
+					
+					.filter-content-wrapper {
+						flex-direction: column;
+						align-items: stretch;
+						gap: 15px;
+					}
+					
+					.upload-button-container {
+						justify-content: center;
+						margin-top: 10px;
 					}
 				}
 			`}</style>
