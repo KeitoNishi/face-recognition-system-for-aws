@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { checkSession, logout } from '@/lib/session'
 import Script from 'next/script'
 import MVSection from '@/app/components/MVSection'
+import { NotificationService } from '@/app/components/NotificationService'
 
 interface Photo {
 	id: string
@@ -190,15 +191,15 @@ export default function VenueGallery() {
 						console.log(`Efficient filter完了: ${efficientMatchedPhotos.length}枚の写真を発見`)
 						
 						if (efficientMatchedPhotos.length > 0) {
-							alert(`${efficientMatchedPhotos.length}枚の写真が見つかりました！（リアルタイム検索）`)
+							NotificationService.photoSearchSuccess(efficientMatchedPhotos.length, 'efficient')
 						} else {
-							alert('該当する写真が見つかりませんでした。')
+							NotificationService.photoSearchNoResults()
 						}
 					} else {
 						setPhotos([])
 						setShowAllPhotos(false)
 						setFilterProgress(100)
-						alert('写真の検索に失敗しました。')
+						NotificationService.photoSearchFailed()
 					}
 				} else {
 					setPhotos(matchedPhotos)
@@ -208,25 +209,25 @@ export default function VenueGallery() {
 					console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
 					
 					if (matchedPhotos.length > 0) {
-						alert(`${matchedPhotos.length}枚の写真が見つかりました！（事前インデックス化）`)
+						NotificationService.photoSearchSuccess(matchedPhotos.length, 'ultra-fast')
 					} else {
-						alert('該当する写真が見つかりませんでした。')
+						NotificationService.photoSearchNoResults()
 					}
 				}
-			} else {
-				if (result.error?.includes('顔写真が登録されていません') || result.code === 'NO_FACE_REGISTERED') {
-					alert('顔写真が登録されていません。まず顔写真を登録してください。')
-					router.push('/')
-					return
-				} else {
-					alert(result.error || '顔認識フィルターに失敗しました')
+							} else {
+					if (result.error?.includes('顔写真が登録されていません') || result.code === 'NO_FACE_REGISTERED') {
+						NotificationService.noFaceRegistered()
+						router.push('/')
+						return
+					} else {
+						NotificationService.faceFilterFailed(result.error)
+					}
+					console.error('Ultra-fast filterエラー:', result.error)
 				}
-				console.error('Ultra-fast filterエラー:', result.error)
-			}
-		} catch (error) {
-			console.error('ネットワークエラー:', error)
-			alert('ネットワークエラーが発生しました。再度お試しください。')
-		} finally {
+			} catch (error) {
+				console.error('ネットワークエラー:', error)
+				NotificationService.networkError()
+			} finally {
 			setIsFiltering(false)
 			setFilterProgress(0)
 		}
