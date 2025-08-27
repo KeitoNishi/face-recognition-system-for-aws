@@ -227,6 +227,8 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
           max-height: 90vh;
           overflow-y: auto;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          display: flex;
+          flex-direction: column;
         }
 
         .modal-header {
@@ -262,6 +264,9 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
 
         .modal-body {
           padding: 20px;
+          flex: 1;
+          overflow-y: auto;
+          min-height: 0;
         }
 
         .description {
@@ -300,14 +305,18 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
         }
 
         .preview-container {
-          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
 
         .preview-image {
           max-width: 100%;
           max-height: 300px;
           border-radius: 4px;
-          margin-bottom: 10px;
+          margin-bottom: 15px;
+          object-fit: contain;
+          display: block;
         }
 
         .change-button {
@@ -318,6 +327,7 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
           border-radius: 4px;
           cursor: pointer;
           font-size: 14px;
+          margin-top: 10px;
         }
 
         .change-button:hover:not(:disabled) {
@@ -345,6 +355,7 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
           justify-content: flex-end;
           gap: 10px;
           margin-top: 20px;
+          flex-shrink: 0;
         }
 
         .cancel-button {
@@ -392,7 +403,7 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
           .modal-footer { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #eee; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
           .cancel-button, .upload-button { width: 100%; }
           .upload-placeholder { padding: 24px 12px; }
-          .preview-image { max-height: 40vh; }
+          .preview-image { max-height: 40vh; object-fit: contain; }
         }
       `}</style>
     </div>

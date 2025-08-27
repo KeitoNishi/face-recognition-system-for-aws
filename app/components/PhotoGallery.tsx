@@ -113,7 +113,7 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
                           height: '160px',
                           objectFit: 'contain',
                           backgroundColor: '#f8f9fa',
-                          border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
+                          border: '1px solid #dee2e6',
                           opacity: loadedImages.has(photo.id) ? 1 : 0.3,
                           transition: 'opacity 0.3s ease-in-out'
                         }}
