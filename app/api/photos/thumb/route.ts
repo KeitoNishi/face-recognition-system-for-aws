@@ -68,8 +68,9 @@ export async function GET(req: NextRequest) {
         
         const originalBuffer = Buffer.from(await originalObj.Body!.transformToByteArray())
         
-        // Sharpでサムネイル生成
+        // Sharpでサムネイル生成（EXIF情報のOrientationタグを自動処理）
         const thumbnailBuffer = await sharp(originalBuffer)
+          .rotate() // EXIF情報に基づいて自動回転
           .resize(w, null, { 
             withoutEnlargement: true,
             fit: 'inside'
