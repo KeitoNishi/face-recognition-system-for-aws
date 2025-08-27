@@ -305,7 +305,7 @@ input[type=button] {
   margin-right: 0;
 }
 #gallery > div > a > figure {
-  height: 200px;
+  height: 160px;
   overflow: hidden;
 }
 #gallery > div img {

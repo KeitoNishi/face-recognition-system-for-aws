@@ -15,7 +15,8 @@
     "analyze": "ANALYZE=true next build",
     "check-env": "bash scripts/check-environment.sh",
     "deploy": "bash deploy_ec2.sh",
-    "deploy:safe": "npm run check-env && npm run deploy"
+    "deploy:safe": "npm run check-env && npm run deploy",
+    "gen:manifests": "node scripts/generate-manifests.js"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "latest",

@@ -54,84 +54,50 @@ export function useVenueGallery({ venueId, onSessionVerified }: UseVenueGalleryO
   const handleFaceFilter = async () => {
     setFilterState(prev => ({ ...prev, isFiltering: true, filterProgress: 0 }))
     
+    // 進捗バーの自動更新タイマー
+    const progressTimer = setInterval(() => {
+      setFilterState(prev => {
+        if (prev.filterProgress < 90) {
+          return { ...prev, filterProgress: prev.filterProgress + 2 }
+        }
+        return prev
+      })
+    }, 100) // 100msごとに2%ずつ増加（5秒で90%まで）
+    
     try {
-      setFilterState(prev => ({ ...prev, filterProgress: 10 }))
-      const response = await fetch('/api/faces/ultra-fast-filter', {
+      const response = await fetch('/api/faces/efficient-filter', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ venueId }),
+        body: JSON.stringify({ 
+          venueId,
+          useCache: true,
+          batchSize: 5
+        }),
       })
-
-      setFilterState(prev => ({ ...prev, filterProgress: 50 }))
 
       const result = await response.json()
 
+      // タイマーを停止
+      clearInterval(progressTimer)
+
       if (response.ok) {
-        setFilterState(prev => ({ ...prev, filterProgress: 80 }))
-        const matchedPhotos = result.matchedPhotos || []
-        if (matchedPhotos.length === 0) {
-          console.log('Ultra-fast filterでマッチなし。Efficient filterにフォールバック...')
-          setFilterState(prev => ({ ...prev, filterProgress: 85 }))
-          
-          const efficientResponse = await fetch('/api/faces/efficient-filter', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              venueId,
-              useCache: true,
-              batchSize: 5
-            }),
-          })
-          
-          const efficientResult = await efficientResponse.json()
-          
-          if (efficientResponse.ok) {
-            const efficientMatchedPhotos = efficientResult.photos || []
-            setPhotos(efficientMatchedPhotos)
-            setFilterState(prev => ({ 
-              ...prev, 
-              showAllPhotos: false, 
-              filterProgress: 100,
-              isFiltering: false
-            }))
-            
-            console.log(`Efficient filter完了: ${efficientMatchedPhotos.length}枚の写真を発見`)
-            
-            if (efficientMatchedPhotos.length > 0) {
-              NotificationService.photoSearchSuccess(efficientMatchedPhotos.length, 'efficient')
-            } else {
-              NotificationService.photoSearchNoResults()
-            }
-          } else {
-            setPhotos([])
-            setFilterState(prev => ({ 
-              ...prev, 
-              showAllPhotos: false, 
-              filterProgress: 100,
-              isFiltering: false
-            }))
-            NotificationService.photoSearchFailed()
-          }
+        const matchedPhotos = result.photos || []
+        setPhotos(matchedPhotos)
+        setFilterState(prev => ({ 
+          ...prev, 
+          showAllPhotos: false, 
+          filterProgress: 100,
+          isFiltering: false
+        }))
+        
+        console.log(`Efficient filter完了: ${matchedPhotos.length}枚の写真を発見`)
+        
+        if (matchedPhotos.length > 0) {
+          NotificationService.photoSearchSuccess(matchedPhotos.length, 'efficient')
         } else {
-          setPhotos(matchedPhotos)
-          setFilterState(prev => ({ 
-            ...prev, 
-            showAllPhotos: false, 
-            filterProgress: 100,
-            isFiltering: false
-          }))
-          
-          console.log(`Ultra-fast filter完了: ${matchedPhotos.length}枚の写真を発見`)
-          
-          if (matchedPhotos.length > 0) {
-            NotificationService.photoSearchSuccess(matchedPhotos.length, 'ultra-fast')
-          } else {
-            NotificationService.photoSearchNoResults()
-          }
+          NotificationService.photoSearchNoResults()
         }
       } else {
         if (result.error?.includes('顔写真が登録されていません') || result.code === 'NO_FACE_REGISTERED') {
@@ -140,10 +106,12 @@ export function useVenueGallery({ venueId, onSessionVerified }: UseVenueGalleryO
         } else {
           NotificationService.faceFilterFailed(result.error)
         }
-        console.error('Ultra-fast filterエラー:', result.error)
+        console.error('Efficient filterエラー:', result.error)
         setFilterState(prev => ({ ...prev, isFiltering: false }))
       }
     } catch (error) {
+      // エラー時もタイマーを停止
+      clearInterval(progressTimer)
       console.error('ネットワークエラー:', error)
       NotificationService.networkError()
       setFilterState(prev => ({ ...prev, isFiltering: false }))
@@ -163,6 +131,19 @@ export function useVenueGallery({ venueId, onSessionVerified }: UseVenueGalleryO
     setFilterState(prev => ({ ...prev, hasFace }))
     onSessionVerified?.(hasFace)
   }, [onSessionVerified])
+
+  // 顔登録完了イベントで hasFace を立てる
+  useEffect(() => {
+    const handler = () => updateSessionState(true)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('face-registered', handler)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('face-registered', handler)
+      }
+    }
+  }, [updateSessionState])
 
   // 初期化
   useEffect(() => {

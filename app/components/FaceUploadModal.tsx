@@ -66,6 +66,9 @@ export default function FaceUploadModal({ isOpen, onClose, onSuccess }: FaceUplo
       if (response.ok) {
         setSuccess(result.message)
         setTimeout(() => {
+          try {
+            window.dispatchEvent(new CustomEvent('face-registered'))
+          } catch {}
           onSuccess()
           handleClose()
         }, 2000)

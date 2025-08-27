@@ -58,8 +58,6 @@ export default function VenueGallery() {
     router.push('/')
   }
 
-  console.log('Current state:', { isLoading, photosCount: photos.length, photos })
-  
   if (isLoading) {
     return (
       <VenueGalleryLayout
@@ -77,17 +75,6 @@ export default function VenueGallery() {
 
   return (
     <>
-      <Script 
-        src="https://code.jquery.com/jquery-3.6.0.min.js" 
-        strategy="beforeInteractive"
-        onReady={() => console.log('jQuery loaded in component')}
-      />
-      <Script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/Modaal/0.4.4/js/modaal.min.js" 
-        strategy="afterInteractive"
-        onReady={() => console.log('Modaal loaded in component')}
-      />
-      
       <VenueGalleryLayout
         sessionState={sessionState}
         onLogout={handleLogout}

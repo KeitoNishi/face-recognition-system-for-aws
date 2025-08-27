@@ -1,7 +1,43 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Photo } from '../types'
+
+// 子コンポーネントに切り出して、フックを正しい階層で使用
+function ModalImage({ src }: { src: string }) {
+  const [modalLoaded, setModalLoaded] = useState(false)
+  return (
+    <>
+      {!modalLoaded && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '40px',
+          height: '40px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #007bff',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          zIndex: 1
+        }}></div>
+      )}
+      <img 
+        src={src}
+        alt=""
+        style={{ 
+          maxWidth: '100%', 
+          height: 'auto',
+          opacity: modalLoaded ? 1 : 0.3,
+          transition: 'opacity 0.5s ease-in-out'
+        }}
+        loading="lazy"
+        onLoad={() => setModalLoaded(true)}
+      />
+    </>
+  )
+}
 
 interface PhotoGalleryProps {
   photos: Photo[]
@@ -39,7 +75,7 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
           <div key={`${photo.s3Key}-${index}`}>
             <a href={`#${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`}>
               <figure>
-                <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                <div style={{ position: 'relative', width: '100%', height: '160px' }}>
                   {!loadedImages.has(photo.id) && (
                     <div style={{
                       position: 'absolute',
@@ -56,10 +92,11 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
                     }}></div>
                   )}
                   {(() => {
-                    const base = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
-                    const src320 = `${base}&w=320`
-                    const src480 = `${base}&w=480`
-                    const src640 = `${base}&w=640`
+                    // 新しいサムネイルAPIを使用
+                    const thumbUrl = photo.thumbUrl || `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=480`
+                    const src320 = `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=320`
+                    const src480 = thumbUrl
+                    const src640 = `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=640`
                     return (
                       <img 
                         src={src480}
@@ -67,14 +104,15 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
                         sizes="(max-width: 480px) 320px, (max-width: 768px) 480px, 640px"
                         alt=""
                         width={400}
-                        height={200}
+                        height={160}
                         loading="lazy"
                         decoding="async"
                         fetchPriority={index < 3 ? 'high' : 'low'}
                         style={{
                           width: '100%',
-                          height: '200px',
-                          objectFit: 'cover',
+                          height: '160px',
+                          objectFit: 'contain',
+                          backgroundColor: '#f8f9fa',
                           border: photo.matched ? '3px solid #ff6b6b' : '1px solid #dee2e6',
                           opacity: loadedImages.has(photo.id) ? 1 : 0.3,
                           transition: 'opacity 0.3s ease-in-out'
@@ -82,8 +120,9 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
                         onLoad={() => handleImageLoad(photo.id)}
                         onError={(e) => {
                           handleImageError(e, photo)
-                          const baseThumb = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
-                          ;(e.target as HTMLImageElement).src = `${baseThumb}&w=480`
+                          // エラー時は元画像からサムネイル生成
+                          const fallbackUrl = `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}&w=480`
+                          ;(e.target as HTMLImageElement).src = fallbackUrl
                         }}
                       />
                     )
@@ -93,28 +132,12 @@ export default function PhotoGallery({ photos, venueName, onDownload }: PhotoGal
             </a>
             <div id={`${('photo_' + photo.s3Key).replace(/[^A-Za-z0-9_-]/g, '_')}`} className="">
               <figure>
-                {(() => {
-                  const base = photo.thumbUrl?.split('?')[0] ? `${photo.thumbUrl.split('?')[0]}?s3Key=${encodeURIComponent(photo.s3Key)}` : `/api/photos/thumb?s3Key=${encodeURIComponent(photo.s3Key)}`
-                  return (
-                    <img 
-                      src={`${base}&w=1280`}
-                      alt=""
-                      style={{ maxWidth: '100%', height: 'auto' }}
-                    />
-                  )
-                })()}
+                <div style={{ position: 'relative', width: '100%', minHeight: '200px' }}>
+                  {/* フックは子コンポーネントで使用 */}
+                  <ModalImage src={photo.url} />
+                </div>
               </figure>
               <p style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <a 
-                  href="#" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    // 新規タブで原本を開く
-                    window.open(photo.url, '_blank', 'noopener,noreferrer');
-                  }}
-                >
-                  表示
-                </a>
                 <a 
                   href="#" 
                   onClick={async (e) => {

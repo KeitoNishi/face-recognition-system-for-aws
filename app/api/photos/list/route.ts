@@ -48,12 +48,62 @@ export async function POST(request: NextRequest) {
     }
     const s3 = getS3Client()
 
+    // まずはマニフェストの読み込みを試行
+    const manifestKey = `manifests/${venueId}.json`
+    try {
+      const obj = await s3.send(new GetObjectCommand({ Bucket: configCache.s3_bucket, Key: manifestKey }))
+      const json = await obj.Body!.transformToString()
+      const parsed = JSON.parse(json)
+      const photos = (parsed.photos ?? parsed) as any[]
+
+      // マニフェストに thumbUrl が無い場合は補完
+      const normalized = photos.map((p: any) => {
+        const s3Key: string = p.s3Key || p.key || ''
+        const thumbUrl = p.thumbUrl || `/api/photos/thumb?s3Key=${encodeURIComponent(s3Key)}&w=480`
+        const url = p.url || (s3Key ? getSignedUrl(
+          s3,
+          new GetObjectCommand({ Bucket: configCache.s3_bucket, Key: s3Key }),
+          { expiresIn: 600 }
+        ) : Promise.resolve(''))
+        return Promise.resolve(url).then((u) => ({
+          id: p.id || s3Key,
+          filename: p.filename || (s3Key.split('/').pop() || ''),
+          s3Key,
+          url: u,
+          thumbUrl,
+          matched: false,
+          confidence: 0
+        }))
+      })
+
+      const withUrls = await Promise.all(normalized)
+      return NextResponse.json(
+        { photos: withUrls },
+        { headers: { 'Cache-Control': 'public, max-age=300' } }
+      )
+    } catch (e) {
+      // マニフェストが無い場合は従来フローにフォールバック
+    }
+
     const prefix = `venues/${venueId}/`
     const keys = await listAll(s3, configCache.s3_bucket, prefix)
 
     const imageKeys = keys.filter(key => {
       const ext = key.toLowerCase().split('.').pop() || ''
-      return ['jpg', 'jpeg', 'png', 'gif'].includes(ext)
+      const filename = key.split('/').pop() || ''
+      
+      // 画像ファイルのみ
+      if (!['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+        return false
+      }
+      
+      // サムネイルファイルを除外（_1280.jpg, _640.jpg, _480.jpg, _320.jpg）
+      if (filename.includes('_1280.') || filename.includes('_640.') || 
+          filename.includes('_480.') || filename.includes('_320.')) {
+        return false
+      }
+      
+      return true
     })
 
     const photos = await Promise.all(imageKeys.map(async (Key) => {
@@ -62,7 +112,10 @@ export async function POST(request: NextRequest) {
         new GetObjectCommand({ Bucket: configCache.s3_bucket, Key }),
         { expiresIn: 600 }
       )
+      
+      // 新しいサムネイルパスを使用
       const thumbUrl = `/api/photos/thumb?s3Key=${encodeURIComponent(Key)}&w=480`
+      
       return {
         id: Key,
         filename: Key.split('/').pop() || '',

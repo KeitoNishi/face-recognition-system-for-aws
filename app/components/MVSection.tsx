@@ -39,7 +39,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
               className="nav-item" 
               onClick={() => handleMenuClick('home')}
             >
-              ホーム
+              HOME
             </button>
             <button 
               className="nav-item" 
@@ -74,7 +74,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
             className="mobile-nav-item" 
             onClick={() => handleMenuClick('home')}
           >
-            ホーム
+            HOME
           </button>
           <button 
             className="mobile-nav-item" 
@@ -146,7 +146,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           border: none;
           padding: 6px 12px;
           font-size: 14px;
-          color: #555;
+          color: #ffffff;
           cursor: pointer;
           border-radius: 20px;
           transition: all 0.3s ease;
@@ -162,7 +162,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
         
         .nav-item.logout-btn {
           background: none;
-          color: #555;
+          color: #ffffff;
         }
         
         .nav-item.logout-btn:hover {
@@ -180,16 +180,17 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           display: none;
           flex-direction: column;
           background: none;
-          border: none;
+          border: 2px solid #000000;
+          border-radius: 4px;
           cursor: pointer;
-          padding: 8px;
+          padding: 6px;
           gap: 4px;
         }
         
         .menu-line {
-          width: 24px;
+          width: 20px;
           height: 2px;
-          background: #333;
+          background: #ffffff;
           transition: all 0.3s ease;
           border-radius: 1px;
         }
@@ -222,9 +223,10 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
         .mobile-nav-item {
           background: none;
           border: none;
-          padding: 15px 20px;
-          font-size: 16px;
-          color: #333;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          padding: 16px 20px;
+          font-size: 20px;
+          color: #ffffff;
           cursor: pointer;
           border-radius: 8px;
           transition: all 0.3s ease;
@@ -232,24 +234,29 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           font-family: 'Noto Sans JP', sans-serif;
         }
         
+        .mobile-nav-item:last-child {
+          border-bottom: none;
+        }
+        
         .mobile-nav-item:hover {
-          background: rgba(0, 123, 255, 0.1);
-          color: #007bff;
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
         }
         
         .mobile-nav-item.logout-btn {
-          background: rgba(220, 53, 69, 0.1);
-          color: #dc3545;
+          background: rgba(220, 53, 69, 0.3);
+          color: #ffffff;
           text-align: center;
         }
         
         .mobile-nav-item.logout-btn:hover {
-          background: rgba(220, 53, 69, 0.2);
+          background: rgba(220, 53, 69, 0.5);
+          color: #ffffff;
         }
         
         .mobile-nav-item.logout-btn:disabled {
-          background: rgba(108, 117, 125, 0.1);
-          color: #6c757d;
+          background: rgba(108, 117, 125, 0.3);
+          color: #cccccc;
           cursor: not-allowed;
         }
         
@@ -266,7 +273,7 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           }
           
           .mobile-menu-btn:hover {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.1);
           }
           
           .nav-container {
@@ -286,20 +293,20 @@ export default function MVSection({ onLogout, isLoggingOut = false }: MVSectionP
           }
           
           .mobile-menu.open {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
           }
           
           .top-nav:has(.mobile-menu.open) {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.3);
           }
           
           .top-nav:has(.mobile-menu.open) .nav-container {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.3);
           }
           
           .top-nav:has(.mobile-menu.open) .mobile-menu-btn {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.3);
           }
         }
         

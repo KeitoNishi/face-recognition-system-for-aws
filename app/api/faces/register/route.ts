@@ -63,8 +63,10 @@ export async function POST(request: NextRequest) {
 		})
 		response.cookies.set('face_info', JSON.stringify(faceInfo), {
 			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
+			secure: false, // 現在はHTTP配信のため
 			sameSite: 'lax',
+			path: '/',
+			maxAge: 24 * 60 * 60, // 24h
 		})
 		return response
 	} catch (error) {

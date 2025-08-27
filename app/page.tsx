@@ -134,41 +134,58 @@ function HomeContent() {
       />
       
       <section id="upload">
-        <div className="upload-header" onClick={() => setIsUploadSectionExpanded(!isUploadSectionExpanded)}>
-          <h3>顔写真登録</h3>
-          <span className={`expand-icon ${isUploadSectionExpanded ? 'expanded' : ''}`}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        </div>
-        
-        <div className={`upload-content ${isUploadSectionExpanded ? 'expanded' : ''}`}>
+        {/* PC版: サンプルファイルの構造に合わせる */}
+        <div className="upload-pc">
           <dl>
+            <dt>顔写真登録</dt>
             <dd>
               顔写真を登録すると、フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真が絞り込んで表示されます。
-              <br /><br />
               <p className="note">
                 取り込まれた顔写真は、ユーザー情報とは一切紐付けられず、今回の写真照合のみに使用されます。照合完了後は速やかに破棄され、システム上に保存されることはありません。
               </p>
             </dd>
           </dl>
-          <div className="upload-button-container">
-            {faceInfo ? (
-              <input 
-                className="upload_btn" 
-                type="button" 
-                value="顔写真を再登録する" 
-                onClick={openFaceUploadModal}
-              />
-            ) : (
-              <input 
-                className="upload_btn" 
-                type="button" 
-                value="顔写真を登録する" 
-                onClick={openFaceUploadModal}
-              />
-            )}
+          <input 
+            className="upload_btn" 
+            type="button" 
+            value={faceInfo ? "顔写真を再登録する" : "顔写真を登録する"}
+            onClick={openFaceUploadModal}
+          />
+        </div>
+        
+        {/* スマホ版: アコーディオン形式 */}
+        <div className="upload-mobile">
+          {/* モバイル用ヘッダー */}
+          <div className="upload-header" onClick={() => setIsUploadSectionExpanded(!isUploadSectionExpanded)}>
+            <h3>顔写真登録</h3>
+            <span className={`expand-icon ${isUploadSectionExpanded ? 'expanded' : ''}`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 10L12 15L17 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
+          
+          <div className={`upload-content ${isUploadSectionExpanded ? 'expanded' : ''}`}>
+            <div className="upload-content-wrapper">
+              <div className="upload-description">
+                <dl>
+                  <dd>
+                    顔写真を登録すると、フォトギャラリー内の写真と登録された顔写真を照らし合わせ、一致した写真が絞り込んで表示されます。
+                    <p className="note">
+                      取り込まれた顔写真は、ユーザー情報とは一切紐付けられず、今回の写真照合のみに使用されます。照合完了後は速やかに破棄され、システム上に保存されることはありません。
+                    </p>
+                  </dd>
+                </dl>
+              </div>
+              <div className="upload-button-container">
+                <input 
+                  className="upload_btn" 
+                  type="button" 
+                  value={faceInfo ? "顔写真を再登録する" : "顔写真を登録する"}
+                  onClick={openFaceUploadModal}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -407,26 +424,99 @@ function HomeContent() {
           }
         }
         
-        /* アコーディオン形式のアップロードセクション */
-        .upload-header {
+        /* PC版とスマホ版の制御 */
+        .upload-pc {
           display: none;
+        }
+        
+        .upload-mobile {
+          display: block;
+        }
+        
+        /* PC版: サンプルファイルのCSSを完全に適用 */
+        @media (min-width: 769px) {
+          .upload-pc {
+            display: block;
+          }
+          
+          .upload-mobile {
+            display: none;
+          }
+          
+          .upload-pc {
+            padding: 30px;
+            background: #F8F2E1;
+            display: flex;
+          }
+          
+          .upload-pc > dl {
+            flex: 1;
+            display: flex;
+          }
+          
+          .upload-pc > dl > dt {
+            width: 10em;
+            margin-right: 30px;
+            font-weight: 500;
+            border-left: #707070 1px solid;
+            border-right: #707070 1px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .upload-pc > dl > dd {
+            font-size: 1.5rem;
+            flex: 1;
+          }
+          
+          .upload-pc > dl > dd > p {
+            margin-top: 5px;
+            font-size: 1.4rem;
+          }
+          
+          .upload-pc > input {
+            width: 220px;
+            margin-left: 30px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: "Noto Sans JP", sans-serif;
+            color: #fff;
+            border: #AE9145 2px solid;
+            border-radius: 5px;
+            background: #AE9145;
+            transition: 0.5s;
+            cursor: pointer;
+          }
+          
+          .upload-pc > input:hover {  
+            color: #AE9145;
+            background: #fff;
+          }
+        }
+        
+        /* スマホ版: アコーディオン形式 */
+        .upload-header {
+          display: flex;
           justify-content: space-between;
           align-items: center;
           padding: 20px;
-          background: #f8f9fa;
+          background: #ffffff;
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.3s ease;
-          border: 1px solid #e9ecef;
+          border: 2px solid #e9ecef;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .upload-header:hover {
-          background: #e9ecef;
+          background: #f8f9fa;
+          border-color: #007bff;
         }
         
         .upload-header h3 {
           margin: 0;
-          font-size: 16px;
+          font-size: 20px;
           font-weight: 600;
           color: #333;
         }
@@ -441,46 +531,69 @@ function HomeContent() {
         }
         
         .upload-content {
-          max-height: none;
-          overflow: visible;
+          max-height: 0;
+          overflow: hidden;
           transition: max-height 0.3s ease, padding 0.3s ease;
+          padding: 0 20px;
+        }
+        
+        .upload-content.expanded {
+          max-height: 500px;
           padding: 20px;
         }
         
-        @media (min-width: 769px) {
-          .upload-header {
-            display: none;
-          }
-          
-          .upload-content {
-            max-height: none;
-            overflow: visible;
-            padding: 20px;
-          }
+        .upload-content-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 15px;
         }
         
-        @media (max-width: 768px) {
-          .upload-header {
-            display: flex;
-          }
-          
-          .upload-content {
-            max-height: 0;
-            overflow: hidden;
-            padding: 0 20px;
-          }
-          
-          .upload-content.expanded {
-            max-height: 500px;
-            padding: 20px;
-          }
+        .upload-description {
+          flex: 1;
+        }
+        
+        .upload-description dl {
+          margin: 0;
+        }
+        
+        .upload-description dd {
+          font-size: 1.4rem;
+          line-height: 1.6;
+          margin: 0;
+        }
+        
+        .upload-description .note {
+          margin-top: 10px;
+          font-size: 1.2rem;
+          color: #6c757d;
         }
         
         .upload-button-container {
           display: flex;
           justify-content: center;
           align-items: center;
-          margin-top: 20px;
+          margin-top: 10px;
+        }
+        
+        .upload-button-container .upload_btn {
+          width: 100%;
+          max-width: 300px;
+          font-size: 1.4rem;
+          font-weight: 700;
+          font-family: "Noto Sans JP", sans-serif;
+          color: #fff;
+          border: #AE9145 2px solid;
+          border-radius: 5px;
+          background: #AE9145;
+          transition: 0.5s;
+          cursor: pointer;
+          padding: 12px 20px;
+        }
+        
+        .upload-button-container .upload_btn:hover {  
+          color: #AE9145;
+          background: #fff;
         }
       `}</style>
     </div>
