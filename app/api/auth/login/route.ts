@@ -26,10 +26,14 @@ export async function POST(request: NextRequest) {
         redirectUrl: config.login_redirect_url || '/'
       })
       
+      // プロトコルを判定してsecureフラグを設定
+      const protocol = request.headers.get('x-forwarded-proto') || 'http'
+      const isSecure = protocol === 'https'
+      
       // セッションクッキーを設定（24時間有効）
       response.cookies.set('session_id', sessionId, {
         httpOnly: true,
-        secure: false, // HTTP環境のためfalseに設定
+        secure: isSecure, // HTTPS環境ではtrue、HTTP環境ではfalse
         sameSite: 'lax',
         maxAge: 24 * 60 * 60 // 24時間
       })

@@ -6,7 +6,7 @@
 set -e  # エラー時に停止
 
 # 設定
-EC2_IP="52.195.165.233"
+EC2_IP="54.64.207.64"
 EC2_USER="ec2-user"
 KEY_PATH="/Users/keito/workspace/key-aws/ec2-key-pair.pem"
 PROJECT_NAME="face-recognition-system"
